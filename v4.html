@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DataFlow Pro · Análisis de Consumos 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════════════
+   TOKENS DE DISEÑO
+══════════════════════════════════════════════ */
+:root {
+  --bg:     #eaeff7;
+  --card:   #f0f4fb;
+  --deep:   #dce3ef;
+  --border: rgba(79,126,247,.12);
+  --glass:  rgba(240,244,251,.92);
+  --t1:     #111827;
+  --t2:     #374151;
+  --mu:     #9ca3af;
+  --a1:     #4f7ef7;
+  --a2:     #7c3aed;
+  --a3:     #06b6d4;
+  --a4:     #10b981;
+  --a5:     #f59e0b;
+  --da:     #ef4444;
+  --sh-r:   5px 5px 14px #cdd5e2, -5px -5px 14px #fff;
+  --sh-i:   inset 4px 4px 10px #cdd5e2, inset -4px -4px 10px #fff;
+  --sh-c:   8px 8px 22px #c6cedc, -4px -4px 14px #fff;
+  --sh-h:   12px 12px 30px #bcc6d6, -6px -6px 18px #fff;
+  --r1:8px;--r2:14px;--r3:20px;--r4:28px;--rf:50px;
+  --fb:'Plus Jakarta Sans',sans-serif;
+  --fh:'Outfit',sans-serif;
+  --fm:'JetBrains Mono',monospace;
+  --tr:all .28s cubic-bezier(.4,0,.2,1);
+  --ga:linear-gradient(135deg,#4f7ef7,#7c3aed);
+  --gg:linear-gradient(135deg,#10b981,#06b6d4);
+  --gw:linear-gradient(135deg,#f59e0b,#ef4444);
+  --gp:linear-gradient(135deg,#ec4899,#f97316);
+}
+
+/* ══════════════════════════════════════════════
+   RESET + BASE
+══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--fb);color:var(--t1);
+  background:var(--bg);
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(79,126,247,.06) 0%,transparent 50%),
+                   radial-gradient(ellipse at 80% 20%,rgba(124,58,237,.05) 0%,transparent 50%);
+  min-height:100vh;overflow-x:hidden;line-height:1.6;font-size:16px
+}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--deep)}
+::-webkit-scrollbar-thumb{background:var(--a1);border-radius:var(--rf)}
+
+/* ══════════════════════════════════════════════
+   HEADER FIJO
+══════════════════════════════════════════════ */
+#hdr{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:var(--glass);backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid rgba(255,255,255,.65);
+  box-shadow:0 2px 24px rgba(79,126,247,.09);
+  padding:10px 24px
+}
+.hi{max-width:1400px;margin:0 auto;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:36px;height:36px;background:var(--ga);border-radius:var(--r1);
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  box-shadow:0 4px 14px rgba(79,126,247,.32);flex-shrink:0}
+.brand-name{font-family:var(--fh);font-size:1.25rem;font-weight:800;
+  color:var(--t1);letter-spacing:-.04em}
+.brand-name span{background:var(--ga);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.brand-sub{font-size:.65rem;color:var(--mu);font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--mu);
+  transition:var(--tr);display:inline-block}
+.status-dot.on{background:var(--a4);box-shadow:0 0 8px var(--a4)}
+.status-pill{display:flex;align-items:center;gap:6px;padding:5px 10px;
+  background:var(--card);border-radius:var(--rf);box-shadow:var(--sh-r);
+  font-size:.68rem;font-weight:600;color:var(--t2);white-space:nowrap}
+.btn{display:flex;align-items:center;gap:6px;border:none;border-radius:var(--rf);
+  padding:7px 16px;font-family:var(--fh);font-size:.78rem;font-weight:700;
+  cursor:pointer;transition:var(--tr);white-space:nowrap;letter-spacing:-.01em}
+.btn:hover{transform:translateY(-2px)}
+.btn-up{background:var(--ga);color:#fff;box-shadow:0 4px 18px rgba(79,126,247,.32)}
+.btn-up:hover{box-shadow:0 8px 28px rgba(79,126,247,.45)}
+.btn-pdf{background:var(--card);color:var(--t2);box-shadow:var(--sh-r);display:none}
+.btn-pdf.show{display:flex}
+.btn-pdf:hover{box-shadow:var(--sh-h)}
+.btn-sm{padding:5px 12px;font-size:.72rem}
+#fi{display:none}
+
+/* ══════════════════════════════════════════════
+   TABS DE NAVEGACIÓN
+══════════════════════════════════════════════ */
+#tabs-nav{
+  position:sticky;top:56px;z-index:150;
+  background:var(--glass);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  display:none
+}
+#tabs-nav.show{display:block}
+.tabs-inner{max-width:1400px;margin:0 auto;padding:0 24px;
+  display:flex;gap:2px;overflow-x:auto}
+.tab-btn{display:flex;align-items:center;gap:7px;padding:11px 18px;
+  background:transparent;border:none;border-bottom:2px solid transparent;
+  font-family:var(--fh);font-size:.82rem;font-weight:600;
+  color:var(--mu);cursor:pointer;transition:var(--tr);white-space:nowrap}
+.tab-btn:hover{color:var(--t2)}
+.tab-btn.active{color:var(--a1);border-bottom-color:var(--a1)}
+.tab-btn .ti{font-size:15px}
+
+/* ══════════════════════════════════════════════
+   MAIN LAYOUT
+══════════════════════════════════════════════ */
+#main{max-width:1400px;margin:0 auto;
+  padding:calc(56px + 44px + 16px) 20px 48px}
+.section{display:none}
+.section.active{display:block}
+
+/* ══════════════════════════════════════════════
+   WELCOME SCREEN
+══════════════════════════════════════════════ */
+#wel{
+  min-height:calc(100vh - 100px);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:40px 16px;gap:24px
+}
+.wt{font-family:var(--fh);font-size:clamp(2.2rem,6vw,3.8rem);font-weight:900;
+  color:var(--t1);letter-spacing:-.05em;line-height:1.05}
+.wt em{font-style:normal;background:var(--ga);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.ws{font-size:clamp(.95rem,2.5vw,1.1rem);color:var(--t2);max-width:480px;line-height:1.75}
+.dz{width:100%;max-width:440px;padding:36px 28px;background:var(--card);
+  border-radius:var(--r4);box-shadow:var(--sh-c);
+  border:2px dashed rgba(79,126,247,.25);cursor:pointer;transition:var(--tr);
+  display:flex;flex-direction:column;align-items:center;gap:12px}
+.dz:hover,.dz.ov{border-color:var(--a1);
+  box-shadow:var(--sh-h),0 0 40px rgba(79,126,247,.1);transform:translateY(-4px)}
+.dz-ico{width:68px;height:68px;background:var(--ga);border-radius:var(--r2);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  box-shadow:0 10px 28px rgba(79,126,247,.28)}
+.dz-t{font-family:var(--fh);font-size:1.15rem;font-weight:700;color:var(--t1)}
+.dz-s{font-size:.82rem;color:var(--mu)}
+.dz-ext{display:flex;gap:7px}
+.ext{padding:3px 10px;background:var(--deep);border-radius:var(--rf);
+  font-family:var(--fm);font-size:.68rem;color:var(--a1);box-shadow:var(--sh-i)}
+.w-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+  width:100%;max-width:440px}
+.wf{background:var(--card);border-radius:var(--r2);padding:13px;
+  box-shadow:var(--sh-r);display:flex;align-items:flex-start;gap:9px;transition:var(--tr)}
+.wf:hover{transform:translateY(-2px);box-shadow:var(--sh-h)}
+.wfi{font-size:19px;flex-shrink:0;margin-top:1px}
+.wft{font-size:.78rem;font-weight:700;color:var(--t1)}
+.wfs{font-size:.67rem;color:var(--mu);margin-top:1px}
+
+/* ══════════════════════════════════════════════
+   LOADER
+══════════════════════════════════════════════ */
+#ldr{position:fixed;inset:0;z-index:500;background:rgba(234,239,247,.94);
+  backdrop-filter:blur(14px);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:20px}
+#ldr.on{display:flex}
+.lcard{background:var(--card);border-radius:var(--r4);padding:36px;
+  box-shadow:var(--sh-c);display:flex;flex-direction:column;
+  align-items:center;gap:16px;min-width:250px;text-align:center}
+.lspin{width:60px;height:60px;position:relative}
+.lr{position:absolute;inset:0;border-radius:50%;border:3px solid transparent}
+.lr:nth-child(1){border-top-color:var(--a1);animation:sp 1s linear infinite}
+.lr:nth-child(2){inset:8px;border-right-color:var(--a2);animation:sp .78s linear infinite reverse}
+.lr:nth-child(3){inset:16px;border-bottom-color:var(--a3);animation:sp 1.18s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.lt{font-family:var(--fh);font-size:1rem;font-weight:700;color:var(--t1)}
+.lsub{font-size:.8rem;color:var(--mu)}
+.lpb{width:190px;height:5px;background:var(--deep);border-radius:var(--rf);
+  box-shadow:var(--sh-i);overflow:hidden}
+.lb{height:100%;background:var(--ga);border-radius:var(--rf);
+  animation:lp 1.7s ease-in-out infinite}
+@keyframes lp{0%{width:0}55%{width:72%}100%{width:100%}}
+
+/* ══════════════════════════════════════════════
+   COMPONENTES REUTILIZABLES
+══════════════════════════════════════════════ */
+
+/* Barra de archivo */
+.fbar{display:flex;align-items:center;gap:12px;padding:12px 18px;
+  background:var(--card);border-radius:var(--r2);box-shadow:var(--sh-r);
+  margin-bottom:24px;flex-wrap:wrap}
+.fbi{font-size:20px;flex-shrink:0}
+.fbd{flex:1;min-width:0}
+.fbn{font-family:var(--fm);font-size:.76rem;font-weight:500;color:var(--a1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbm{font-size:.67rem;color:var(--mu);margin-top:1px}
+.fbb{display:flex;gap:7px;flex-wrap:wrap}
+.fbg{padding:3px 11px;border-radius:var(--rf);font-size:.67rem;font-weight:600}
+.fbg.s{background:rgba(79,126,247,.1);color:var(--a1)}
+.fbg.r{background:rgba(16,185,129,.1);color:var(--a4)}
+
+/* Section header */
+.sh{margin-bottom:14px}
+.sh-t{font-family:var(--fh);font-size:clamp(1.3rem,3.5vw,1.6rem);font-weight:800;
+  color:var(--t1);letter-spacing:-.03em}
+.sh-s{font-size:.78rem;color:var(--mu);margin-top:2px}
+
+/* KPI grid */
+.kg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+.kc{background:var(--card);border-radius:var(--r2);padding:18px;
+  box-shadow:var(--sh-c);transition:var(--tr);position:relative;overflow:hidden}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--kco,var(--ga))}
+.kc:hover{transform:translateY(-3px);box-shadow:var(--sh-h)}
+.k-ico{width:40px;height:40px;border-radius:var(--r1);display:flex;align-items:center;
+  justify-content:center;font-size:17px;background:var(--kbg,rgba(79,126,247,.1));
+  margin-bottom:12px;box-shadow:3px 3px 8px rgba(0,0,0,.05),-2px -2px 6px rgba(255,255,255,.8)}
+.k-lb{font-size:.65rem;font-weight:700;color:var(--mu);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:3px}
+.k-v{font-family:var(--fm);font-size:clamp(.85rem,2.5vw,1.02rem);font-weight:700;
+  color:var(--t1);letter-spacing:-.02em;line-height:1.3;word-break:break-all}
+.k-d{margin-top:3px;font-size:.67rem;font-weight:600;display:flex;align-items:center;gap:3px}
+.k-d.up{color:var(--a4)}.k-d.dn{color:var(--da)}.k-d.ne{color:var(--mu)}
+
+/* Chart card */
+.cc{background:var(--card);border-radius:var(--r3);padding:18px;
+  box-shadow:var(--sh-c);transition:var(--tr);overflow:hidden}
+.cc:hover{box-shadow:var(--sh-h)}
+.cch{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.cc-t{font-family:var(--fh);font-size:.95rem;font-weight:700;color:var(--t1);letter-spacing:-.02em}
+.cc-s{font-size:.67rem;color:var(--mu);margin-top:2px}
+.cc-b{padding:3px 9px;border-radius:var(--rf);font-size:.67rem;font-weight:700;
+  background:rgba(79,126,247,.1);color:var(--a1);flex-shrink:0}
+.cw{position:relative;width:100%}
+.h200{height:200px}.h250{height:250px}.h280{height:280px}
+.h320{height:320px}.h360{height:360px}.h400{height:400px}
+.cw canvas{max-width:100%!important}
+
+/* Grid 2 cols */
+.g2{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:24px}
+.g3{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:24px}
+
+/* Tabla */
+.tw{overflow-x:auto;border-radius:var(--r2)}
+.tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.tbl th{background:var(--deep);padding:7px 12px;text-align:left;
+  font-size:.64rem;font-weight:700;color:var(--mu);text-transform:uppercase;
+  letter-spacing:.06em;white-space:nowrap;position:sticky;top:0}
+.tbl td{padding:7px 12px;border-bottom:1px solid rgba(79,126,247,.06);
+  color:var(--t1);vertical-align:middle}
+.tbl tr:hover td{background:rgba(79,126,247,.04)}
+.tbl tr:last-child td{border-bottom:none}
+.rn{display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;border-radius:50%;background:var(--ga);
+  color:#fff;font-size:.62rem;font-weight:700}
+.rn.tp{background:var(--gw)}
+
+/* Progress bar */
+.pb{display:flex;align-items:center;gap:7px}
+.pb-b{flex:1;height:5px;background:var(--deep);border-radius:var(--rf);
+  box-shadow:var(--sh-i);overflow:hidden;min-width:40px}
+.pb-f{height:100%;border-radius:var(--rf);background:var(--ga);
+  transition:width .8s cubic-bezier(.4,0,.2,1)}
+.pb-p{font-family:var(--fm);font-size:.65rem;color:var(--mu);white-space:nowrap;min-width:32px}
+
+/* Selector */
+.sw{position:relative;display:inline-block;width:100%;max-width:400px;margin-bottom:14px}
+.sw::after{content:'▾';position:absolute;right:12px;top:50%;
+  transform:translateY(-50%);color:var(--a1);pointer-events:none;font-size:12px}
+.sel{width:100%;padding:10px 32px 10px 12px;background:var(--card);border:none;
+  border-radius:var(--r2);box-shadow:var(--sh-i);font-family:var(--fb);
+  font-size:.84rem;color:var(--t1);cursor:pointer;appearance:none;
+  -webkit-appearance:none;transition:var(--tr);outline:none}
+.sel:focus{box-shadow:var(--sh-i),0 0 0 2px var(--a1)}
+
+/* Variación pill */
+.var-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;
+  border-radius:var(--rf);font-family:var(--fm);font-size:.68rem;font-weight:700}
+.var-pill.up{background:rgba(16,185,129,.12);color:var(--a4)}
+.var-pill.dn{background:rgba(239,68,68,.1);color:var(--da)}
+.var-pill.ne{background:rgba(156,163,175,.12);color:var(--mu)}
+
+/* Divider */
+.dv{height:1px;background:linear-gradient(90deg,transparent,
+  rgba(79,126,247,.14),transparent);margin:22px 0}
+
+/* Variación mensual grid */
+.vg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:24px}
+.vc{background:var(--card);border-radius:var(--r2);padding:13px;
+  box-shadow:var(--sh-r);display:flex;align-items:center;
+  justify-content:space-between;gap:8px;transition:var(--tr)}
+.vc:hover{transform:translateY(-2px);box-shadow:var(--sh-h)}
+.vm-n{font-size:.65rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.vm-v{font-family:var(--fm);font-size:.78rem;font-weight:700;color:var(--t1);margin-top:1px}
+.vp{font-family:var(--fm);font-size:.9rem;font-weight:800;text-align:right}
+.vp.up{color:var(--a4)}.vp.dn{color:var(--da)}.vp.ne{color:var(--mu)}
+
+/* Ficha insumo */
+.ficha-header{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.ficha-name{font-family:var(--fh);font-size:clamp(1.1rem,3vw,1.45rem);
+  font-weight:800;color:var(--t1);letter-spacing:-.03em}
+.ficha-code{font-family:var(--fm);font-size:.72rem;color:var(--mu);margin-top:3px}
+.ficha-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Comparativa selectors */
+.comp-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.comp-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+
+/* Badge coloreado */
+.badge{display:inline-flex;padding:3px 9px;border-radius:var(--rf);
+  font-size:.67rem;font-weight:700}
+
+/* Fade in */
+.fi{opacity:0;transform:translateY(16px);
+  transition:opacity .45s cubic-bezier(.4,0,.2,1),transform .45s cubic-bezier(.4,0,.2,1)}
+.fi.vis{opacity:1;transform:none}
+.d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
+.d4{transition-delay:.24s}.d5{transition-delay:.30s}
+
+/* Toast */
+#tc{position:fixed;bottom:18px;right:18px;z-index:400;
+  display:flex;flex-direction:column;gap:7px}
+.toast{display:flex;align-items:center;gap:9px;padding:12px 16px;
+  background:var(--card);border-radius:var(--r2);box-shadow:var(--sh-c);
+  border-left:3px solid var(--a1);font-size:.78rem;color:var(--t1);
+  font-weight:500;min-width:210px;max-width:340px;
+  animation:ts .35s cubic-bezier(.4,0,.2,1)}
+.toast.ok{border-left-color:var(--a4)}.toast.err{border-left-color:var(--da)}
+@keyframes ts{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+
+/* Helpers */
+.tr{text-align:right}.mo{font-family:var(--fm)}.bold{font-weight:700}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.flex{display:flex}.gap8{gap:8px}.gap12{gap:12px}.wrap{flex-wrap:wrap}
+.a-center{align-items:center}
+.empty-state{text-align:center;padding:40px 20px;color:var(--mu);font-size:.9rem}
+.empty-state .ei{font-size:36px;margin-bottom:10px}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
+@media(min-width:640px){
+  .kg{grid-template-columns:repeat(3,1fr)}
+  .vg{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+}
+@media(min-width:900px){
+  #main{padding-left:28px;padding-right:28px}
+  .kg{grid-template-columns:repeat(4,1fr)}
+  .vg{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .h250{height:260px}.h280{height:295px}.h320{height:340px}.h360{height:380px}
+}
+@media(min-width:1100px){
+  .kg{grid-template-columns:repeat(6,1fr)}
+  .vg{grid-template-columns:repeat(6,1fr)}
+}
+@media(min-width:1280px){
+  #main{padding-left:40px;padding-right:40px}
+  .cc{padding:22px}
+}
+
+/* ══════════════════════════════════════════════
+   PRINT / PDF
+  Captura todo el contenido visible exactamente
+  como en pantalla
+══════════════════════════════════════════════ */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;color-adjust:exact!important}
+
+  /* Fondo preservado */
+  body{background:#eaeff7!important;
+    background-image:none!important;font-size:11px!important}
+
+  /* Ocultar UI de navegación */
+  #hdr,#ldr,#wel,#tc,#tabs-nav,
+  .btn-up,.btn-pdf,.ficha-actions .btn-pdf,
+  .sw,.comp-row{display:none!important}
+
+  #main{padding:12px!important;max-width:100%!important}
+
+  /* Mostrar el tab activo */
+  .section{display:block!important}
+  .section:not(.active){display:none!important}
+
+  /* Todas las fi visibles */
+  .fi{opacity:1!important;transform:none!important}
+
+  /* Cards sin hover shadow extra */
+  .kc:hover,.cc:hover,.vc:hover,.wf:hover{transform:none!important}
+
+  /* KPI en muchas cols */
+  .kg{grid-template-columns:repeat(6,1fr)!important;gap:6px!important;margin-bottom:12px!important}
+  .kc{padding:10px!important;border-radius:6px!important;
+    box-shadow:none!important;border:1px solid var(--border)!important}
+  .k-ico{width:30px;height:30px;font-size:14px;margin-bottom:8px}
+  .k-v{font-size:.82rem!important}
+
+  /* Gráficas 2 columnas */
+  .g2{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;margin-bottom:12px!important}
+  .g3{grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:12px!important}
+  .cc{padding:10px!important;border-radius:8px!important;
+    box-shadow:none!important;border:1px solid var(--border)!important;
+    break-inside:avoid}
+  .h200,.h250,.h280,.h320,.h360,.h400{height:160px!important}
+
+  /* Variación 6 cols */
+  .vg{grid-template-columns:repeat(6,1fr)!important;gap:5px!important;margin-bottom:12px!important}
+  .vc{padding:8px!important;box-shadow:none!important;
+    border:1px solid var(--border)!important;border-radius:6px!important}
+
+  .fbar{box-shadow:none!important;border:1px solid var(--border)!important;
+    margin-bottom:12px;padding:8px 14px;border-radius:8px}
+  .dv{margin:10px 0!important}
+
+  .tbl{font-size:.7rem!important}
+  .tbl td,.tbl th{padding:4px 8px!important}
+
+  /* Page breaks inteligentes */
+  .dv.pb{page-break-before:always}
+
+  /* Ficha individual print */
+  .ficha-header{page-break-inside:avoid}
+
+  /* Pie de página */
+  .print-footer{display:block!important}
+}
+.print-footer{display:none;text-align:center;margin-top:16px;
+  font-size:.65rem;color:var(--mu);padding-top:8px;
+  border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- ════════════ HEADER ════════════ -->
+<header id="hdr">
+  <div class="hi">
+    <div class="brand">
+      <div class="brand-logo">📊</div>
+      <div>
+        <div class="brand-name"><span>DataFlow</span> Pro</div>
+        <div class="brand-sub">Análisis de Consumos 2025</div>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <div class="status-pill">
+        <span class="status-dot" id="sd"></span>
+        <span id="st">Sin datos</span>
+      </div>
+      <button class="btn btn-pdf" id="btn-pdf" onclick="exportarPDF()">🖨 Imprimir / PDF</button>
+      <button class="btn btn-up" onclick="document.getElementById('fi').click()">⬆ Cargar Excel</button>
+      <input type="file" id="fi" accept=".xlsx,.xls,.xlsm"/>
+    </div>
+  </div>
+</header>
+
+<!-- ════════════ TABS NAV ════════════ -->
+<nav id="tabs-nav">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="showTab('resumen')" id="tb-resumen">
+      <span class="ti">📊</span> Resumen General
+    </button>
+    <button class="tab-btn" onclick="showTab('mensual')" id="tb-mensual">
+      <span class="ti">📅</span> Análisis Mensual
+    </button>
+    <button class="tab-btn" onclick="showTab('insumo')" id="tb-insumo">
+      <span class="ti">🔍</span> Ficha por Insumo
+    </button>
+    <button class="tab-btn" onclick="showTab('comparativa')" id="tb-comparativa">
+      <span class="ti">📈</span> Comparativa
+    </button>
+  </div>
+</nav>
+
+<!-- ════════════ LOADER ════════════ -->
+<div id="ldr">
+  <div class="lcard">
+    <div class="lspin"><div class="lr"></div><div class="lr"></div><div class="lr"></div></div>
+    <div class="lt">Procesando Excel</div>
+    <div class="lsub" id="lsb">Leyendo hojas...</div>
+    <div class="lpb"><div class="lb"></div></div>
+  </div>
+</div>
+
+<!-- ════════════ MAIN ════════════ -->
+<main id="main">
+
+  <!-- ─── WELCOME ─── -->
+  <div id="wel">
+    <div class="wt">Análisis de<br>Consumos <em>2025</em></div>
+    <p class="ws">Carga el archivo Excel para obtener análisis completo insumo por insumo, evolución mensual y comparativas. Todo en pesos colombianos.</p>
+    <div class="dz" id="dz" tabindex="0" role="button"
+      onclick="document.getElementById('fi').click()">
+      <div class="dz-ico">📂</div>
+      <div class="dz-t">Arrastra tu Excel aquí</div>
+      <div class="dz-s">o haz clic para seleccionar</div>
+      <div class="dz-ext"><span class="ext">.xlsx</span><span class="ext">.xls</span></div>
+    </div>
+    <div class="w-grid">
+      <div class="wf"><div class="wfi">📊</div><div><div class="wft">Resumen General</div><div class="wfs">KPIs, tendencias, variación</div></div></div>
+      <div class="wf"><div class="wfi">📅</div><div><div class="wft">Por Mes</div><div class="wfs">Desglose de cada mes</div></div></div>
+      <div class="wf"><div class="wfi">🔍</div><div><div class="wft">Por Insumo</div><div class="wfs">Ficha completa + PDF</div></div></div>
+      <div class="wf"><div class="wfi">📈</div><div><div class="wft">Comparativa</div><div class="wfs">Hasta 3 insumos juntos</div></div></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 1: RESUMEN GENERAL
+  ════════════════════════════════════════ -->
+  <div id="tab-resumen" class="section active" style="display:none">
+
+    <div class="fbar fi" id="fbar">
+      <div class="fbi">📗</div>
+      <div class="fbd">
+        <div class="fbn" id="fn">—</div>
+        <div class="fbm" id="fm">—</div>
+      </div>
+      <div class="fbb">
+        <div class="fbg s" id="fbs">—</div>
+        <div class="fbg r" id="fbr">—</div>
+      </div>
+    </div>
+
+    <div class="sh fi d1">
+      <div class="sh-t">Indicadores Clave</div>
+      <div class="sh-s">Resumen financiero anual · Pesos Colombianos (COP)</div>
+    </div>
+    <div class="kg" id="kg"></div>
+
+    <div class="dv"></div>
+
+    <div class="sh fi d1">
+      <div class="sh-t">Tendencias Temporales</div>
+      <div class="sh-s">Evolución mensual de costos totales</div>
+    </div>
+    <div class="g2 fi d2">
+      <div class="cc">
+        <div class="cch"><div><div class="cc-t">Tendencia Mensual</div>
+          <div class="cc-s">Costo total por mes en COP</div></div>
+          <span class="cc-b">Línea</span></div>
+        <div class="cw h280"><canvas id="ch-l"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cch"><div><div class="cc-t">Costo Acumulado</div>
+          <div class="cc-s">Evolución acumulada del período</div></div>
+          <span class="cc-b">Área</span></div>
+        <div class="cw h280"><canvas id="ch-a"></canvas></div>
+      </div>
+    </div>
+
+    <div class="dv"></div>
+
+    <div class="sh fi d1">
+      <div class="sh-t">Variación Mensual</div>
+      <div class="sh-s">Cambio porcentual y valor absoluto mes a mes</div>
+    </div>
+    <div class="vg fi d2" id="vg"></div>
+
+    <div class="dv pb"></div>
+
+    <div class="sh fi d1">
+      <div class="sh-t">Top 10 Materiales</div>
+      <div class="sh-s">Por costo total acumulado en COP</div>
+    </div>
+    <div class="g2 fi d2">
+      <div class="cc">
+        <div class="cch"><div><div class="cc-t">Costos por Material</div>
+          <div class="cc-s">Top 10 acumulado anual</div></div>
+          <span class="cc-b">Barras</span></div>
+        <div class="cw h400"><canvas id="ch-b"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cch"><div><div class="cc-t">Participación Anual</div>
+          <div class="cc-s">% del costo total por material</div></div>
+          <span class="cc-b">Pastel</span></div>
+        <div class="cw h400"><canvas id="ch-p"></canvas></div>
+      </div>
+    </div>
+
+    <div class="cc fi d3" style="margin-bottom:24px">
+      <div class="cch">
+        <div><div class="cc-t">Ranking Completo de Materiales</div>
+          <div class="cc-s">Todos los insumos · valores en COP</div></div>
+        <span class="cc-b" id="tbdg">—</span>
+      </div>
+      <div class="tw">
+        <table class="tbl">
+          <thead><tr>
+            <th>#</th><th>Código</th><th>Material</th>
+            <th class="tr">Cant. Total KG</th>
+            <th class="tr">Costo Total COP</th>
+            <th>Participación</th>
+          </tr></thead>
+          <tbody id="tb-res"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dv pb"></div>
+
+    <div class="sh fi d1">
+      <div class="sh-t">Análisis Estadístico</div>
+      <div class="sh-s">Distribución y correlación de variables</div>
+    </div>
+    <div class="g2 fi d2">
+      <div class="cc">
+        <div class="cch"><div><div class="cc-t">Histograma de Costos</div>
+          <div class="cc-s">Distribución por rango de costo anual</div></div>
+          <span class="cc-b">Histograma</span></div>
+        <div class="cw h250"><canvas id="ch-hist"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cch"><div><div class="cc-t">Cantidad vs Costo</div>
+          <div class="cc-s">Correlación entre variables por material</div></div>
+          <span class="cc-b">Dispersión</span></div>
+        <div class="cw h250"><canvas id="ch-disp"></canvas></div>
+      </div>
+    </div>
+
+    <div class="print-footer">
+      DataFlow Pro · Reporte Análisis de Consumos 2025 ·
+      Generado el <span id="fecha-r"></span> · Pesos Colombianos (COP)
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 2: ANÁLISIS MENSUAL
+  ════════════════════════════════════════ -->
+  <div id="tab-mensual" class="section" style="display:none">
+
+    <div class="sh fi d1">
+      <div class="sh-t">Análisis Mensual Detallado</div>
+      <div class="sh-s">Selecciona un mes para ver el desglose completo de insumos</div>
+    </div>
+
+    <div class="sw fi d2">
+      <label for="sel-mes" class="sr-only">Mes</label>
+      <select class="sel" id="sel-mes" onchange="renderMensual()">
+        <option value="">— Selecciona un mes —</option>
+      </select>
+    </div>
+
+    <div id="mens-content">
+      <div class="empty-state fi">
+        <div class="ei">📅</div>
+        <div>Selecciona un mes para ver el análisis</div>
+      </div>
+    </div>
+
+    <div class="print-footer">
+      DataFlow Pro · Análisis Mensual ·
+      Generado el <span class="fecha-r2"></span> · Pesos Colombianos (COP)
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 3: FICHA POR INSUMO
+  ════════════════════════════════════════ -->
+  <div id="tab-insumo" class="section" style="display:none">
+
+    <div class="sh fi d1">
+      <div class="sh-t">Ficha por Insumo</div>
+      <div class="sh-s">Análisis completo de consumo, costos y evolución mensual por insumo</div>
+    </div>
+
+    <div class="sw fi d2">
+      <label for="sel-ins" class="sr-only">Insumo</label>
+      <select class="sel" id="sel-ins" onchange="renderFicha()">
+        <option value="">— Selecciona un insumo —</option>
+      </select>
+    </div>
+
+    <div id="ficha-content">
+      <div class="empty-state fi">
+        <div class="ei">🔍</div>
+        <div>Selecciona un insumo para ver su ficha completa</div>
+      </div>
+    </div>
+
+    <div class="print-footer">
+      DataFlow Pro · Ficha de Insumo ·
+      Generado el <span class="fecha-r2"></span> · Pesos Colombianos (COP)
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TAB 4: COMPARATIVA
+  ════════════════════════════════════════ -->
+  <div id="tab-comparativa" class="section" style="display:none">
+
+    <div class="sh fi d1">
+      <div class="sh-t">Comparativa de Insumos</div>
+      <div class="sh-s">Compara hasta 3 insumos en la misma gráfica</div>
+    </div>
+
+    <div class="fi d2" style="margin-bottom:14px">
+      <div class="comp-row">
+        <span class="comp-dot" style="background:#4f7ef7"></span>
+        <div class="sw" style="margin-bottom:0;max-width:340px">
+          <select class="sel" id="cmp1" onchange="renderComparativa()">
+            <option value="">— Insumo 1 —</option>
+          </select>
+        </div>
+      </div>
+      <div class="comp-row">
+        <span class="comp-dot" style="background:#7c3aed"></span>
+        <div class="sw" style="margin-bottom:0;max-width:340px">
+          <select class="sel" id="cmp2" onchange="renderComparativa()">
+            <option value="">— Insumo 2 —</option>
+          </select>
+        </div>
+      </div>
+      <div class="comp-row">
+        <span class="comp-dot" style="background:#10b981"></span>
+        <div class="sw" style="margin-bottom:0;max-width:340px">
+          <select class="sel" id="cmp3" onchange="renderComparativa()">
+            <option value="">— Insumo 3 (opcional) —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="comp-content">
+      <div class="empty-state fi">
+        <div class="ei">📈</div>
+        <div>Selecciona al menos 2 insumos para comparar</div>
+      </div>
+    </div>
+
+    <div class="print-footer">
+      DataFlow Pro · Comparativa de Insumos ·
+      Generado el <span class="fecha-r2"></span> · Pesos Colombianos (COP)
+    </div>
+  </div>
+
+</main>
+
+<div id="tc" aria-live="polite"></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT PRINCIPAL
+════════════════════════════════════════════════════════════ -->
+<script>
+(() => {
+'use strict';
+
+/* ══ CONSTANTES ══ */
+const MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO',
+               'JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const PALETA = ['#4f7ef7','#7c3aed','#10b981','#f59e0b','#ef4444',
+                '#06b6d4','#ec4899','#8b5cf6','#f97316','#14b8a6',
+                '#6366f1','#84cc16','#d946ef','#0ea5e9'];
+
+/* ══ ESTADO ══ */
+const S = {
+  meses:[],
+  costoPorMes:{},
+  materiales:[],
+  top10:[],
+  kpis:{},
+  variaciones:[]
+};
+
+const charts = {};
+
+/* ══════════════════════════════════════════
+   FORMATEO COP COMPLETO
+   $ 50.633.059  (puntos como miles, Colombia)
+══════════════════════════════════════════ */
+const cop = n => {
+  if (n==null||isNaN(n)) return '—';
+  return `$ ${Math.round(Math.abs(n)).toLocaleString('es-CO')}`;
+};
+const fmtKg = n => {
+  if (!n||isNaN(n)) return '0';
+  return parseFloat(n.toFixed(3)).toLocaleString('es-CO',
+    {minimumFractionDigits:0,maximumFractionDigits:3});
+};
+const pct = (a,t) => t>0 ? ((a/t)*100).toFixed(1)+'%' : '0%';
+const toN = v => {
+  if (v==null||v===''||typeof v==='string'&&v.startsWith('#')) return 0;
+  if (typeof v==='number') return v;
+  const n=parseFloat(String(v).replace(/[^\d.\-]/g,''));
+  return isNaN(n)?0:n;
+};
+const varPct = (a,b) => b>0 ? ((a-b)/b*100) : null;
+
+/* ══════════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════════ */
+const toast = (msg,t='info') => {
+  const icons={info:'ℹ️',ok:'✅',err:'❌'};
+  const el=document.createElement('div');
+  el.className=`toast ${t}`;
+  el.innerHTML=`<span>${icons[t]}</span><span>${msg}</span>`;
+  document.getElementById('tc').appendChild(el);
+  setTimeout(()=>el.remove(),4500);
+};
+const ldr = (on,msg='') => {
+  document.getElementById('ldr').classList.toggle('on',on);
+  if(msg) document.getElementById('lsb').textContent=msg;
+};
+const tick = ()=>new Promise(r=>setTimeout(r,55));
+const killChart = id=>{ if(charts[id]){charts[id].destroy();delete charts[id];} };
+const setStatus = (on,txt)=>{
+  document.getElementById('sd').classList.toggle('on',on);
+  document.getElementById('st').textContent=txt;
+};
+const fadeIn = (root=document) => {
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){e.target.classList.add('vis');obs.unobserve(e.target);}
+    });
+  },{threshold:0.05,rootMargin:'0px 0px -20px 0px'});
+  root.querySelectorAll('.fi:not(.vis)').forEach(el=>obs.observe(el));
+};
+
+/* ══════════════════════════════════════════
+   CHART.JS — CONFIG BASE
+   Tooltips siempre en COP completo
+   Eje Y abreviado para que quepa (M/B)
+══════════════════════════════════════════ */
+const yAx = {
+  grid:{color:'rgba(79,126,247,.06)',drawBorder:false},
+  ticks:{
+    font:{family:"'JetBrains Mono',monospace",size:9},color:'#9ca3af',
+    callback(v){
+      if(Math.abs(v)>=1e9)return`$${(v/1e9).toFixed(1)}B`;
+      if(Math.abs(v)>=1e6)return`$${(v/1e6).toFixed(0)}M`;
+      if(Math.abs(v)>=1e3)return`$${(v/1e3).toFixed(0)}K`;
+      return`$${v}`;
+    }
+  },
+  border:{display:false}
+};
+const xAx={grid:{display:false},
+  ticks:{font:{family:"'Plus Jakarta Sans',sans-serif",size:9},color:'#9ca3af',maxRotation:45},
+  border:{display:false}
+};
+const tipCOP={
+  backgroundColor:'#f0f4fb',titleColor:'#111827',bodyColor:'#374151',
+  borderColor:'rgba(79,126,247,.2)',borderWidth:1,padding:11,cornerRadius:9,
+  titleFont:{family:"'Outfit',sans-serif",weight:'700',size:12},
+  bodyFont:{family:"'Plus Jakarta Sans',sans-serif",size:11},
+  callbacks:{label(ctx){
+    const v=ctx.parsed?.y??ctx.parsed;
+    return typeof v==='number'?` ${cop(v)}`:`  ${v}`;
+  }}
+};
+const bOpts=(ex={})=>({
+  responsive:true,maintainAspectRatio:false,
+  plugins:{
+    legend:{labels:{font:{family:"'Plus Jakarta Sans',sans-serif",size:10},
+      color:'#374151',padding:10,boxWidth:11,boxHeight:11}},
+    tooltip:tipCOP
+  },...ex
+});
+
+/* ══════════════════════════════════════════
+   PARSEO EXCEL
+══════════════════════════════════════════ */
+const parseXLSX = file => new Promise((res,rej)=>{
+  const r=new FileReader();
+  r.onload=e=>{try{res(XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true}));}catch(err){rej(err);}};
+  r.onerror=()=>rej(new Error('No se pudo leer el archivo'));
+  r.readAsArrayBuffer(file);
+});
+
+/* Lee Hoja9 → { ENERO: 50633059, ... } */
+const readHoja9 = wb => {
+  const sn=wb.SheetNames.find(n=>n.trim().toLowerCase()==='hoja9'||n.toLowerCase().includes('resumen'));
+  if(!sn)return null;
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:null});
+  const out={};
+  rows.forEach(row=>{
+    if(!row||row.length<3)return;
+    for(let i=0;i<row.length-1;i++){
+      if(row[i]==null)continue;
+      const raw=String(row[i]).trim().toUpperCase().replace(/\s+/g,'');
+      const mes=MESES.find(m=>m===raw||raw.startsWith(m));
+      if(mes){
+        for(let j=i+1;j<row.length;j++){
+          const v=toN(row[j]);if(v>0){out[mes]=v;break;}
+        }
+        break;
+      }
+    }
+  });
+  return Object.keys(out).length>0?out:null;
+};
+
+/* Lee "CONSUMOS Y COSTOS POR MATERIAL"
+   Hoja rango B2:AA193 → SheetJS rows[0]=fila2, rows[1]=fila3(header), rows[2]=fila4(primer mat)...
+   Filas alternas: impar=material+cantidades, par=costos */
+const readMateriales = wb => {
+  const sn=wb.SheetNames.find(n=>n.toLowerCase().includes('consumo')||n.toLowerCase().includes('material'));
+  if(!sn)return[];
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:null});
+
+  // Buscar fila header dinámicamente (contiene 'enero')
+  let hIdx=-1;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    if(rows[i]&&rows[i].some(c=>c&&String(c).trim().toLowerCase()==='enero')){hIdx=i;break;}
+  }
+  if(hIdx===-1)return[];
+
+  const hdr=rows[hIdx];
+
+  // Mapear columnas de meses (cantidades kg)
+  const mesCols={};
+  hdr.forEach((h,i)=>{
+    if(!h)return;
+    const hl=String(h).trim().toLowerCase();
+    const idx=MESES.findIndex(m=>m.toLowerCase()===hl);
+    if(idx!==-1)mesCols[MESES[idx]]=i;
+  });
+
+  // Detectar índices de código y nombre
+  let codeIdx=hdr.findIndex(h=>h&&String(h).toLowerCase().includes('columna1'));
+  let nameIdx=hdr.findIndex(h=>h&&String(h).toLowerCase().includes('columna2'));
+  if(codeIdx===-1)codeIdx=1;
+  if(nameIdx===-1)nameIdx=2;
+
+  const mats=[];
+  let i=hIdx+1;
+  while(i<rows.length){
+    const row=rows[i];
+    const next=rows[i+1]||[];
+    const hasCode=row&&row[codeIdx]!=null&&
+      (typeof row[codeIdx]==='number'||/^\d+$/.test(String(row[codeIdx]).trim()));
+    const hasName=row&&row[nameIdx]!=null&&
+      String(row[nameIdx]).trim().length>0&&
+      !String(row[nameIdx]).trim().toLowerCase().startsWith('columna');
+    if(hasCode&&hasName){
+      const mat={
+        codigo:row[codeIdx],
+        nombre:String(row[nameIdx]).trim(),
+        cantidades:{},costos:{}
+      };
+      Object.entries(mesCols).forEach(([mes,col])=>{
+        mat.cantidades[mes]=toN(row[col]);
+        mat.costos[mes]=toN(next[col]);
+      });
+      const total=Object.values(mat.costos).reduce((a,b)=>a+b,0);
+      if(total>0)mats.push(mat);
+      i+=2;
+    }else{i++;}
+  }
+  return mats;
+};
+
+/* Fallback: hojas mensuales */
+const readHojasMes = wb => {
+  const out={};
+  wb.SheetNames.forEach(name=>{
+    const nu=name.toUpperCase().trim();
+    const mes=MESES.find(m=>nu.includes(m));
+    if(!mes)return;
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:null});
+    if(!rows.length)return;
+    const hdr=rows[0]||[];
+    let colV=hdr.findIndex(c=>c&&String(c).toLowerCase().includes('valor/mon'));
+    if(colV<0)colV=11;
+    let total=0;
+    rows.slice(1).forEach(r=>{const v=toN(r[colV]);if(v>0)total+=v;});
+    if(total>0&&!out[mes])out[mes]=total;
+  });
+  return out;
+};
+
+/* ══════════════════════════════════════════
+   CÁLCULO KPIs GENERALES
+══════════════════════════════════════════ */
+const calcKPIs = ()=>{
+  const vals=S.meses.map(m=>S.costoPorMes[m]??0);
+  const total=vals.reduce((a,b)=>a+b,0);
+  const prom=total/(vals.length||1);
+  const max=Math.max(...vals);
+  const min=Math.min(...vals.filter(v=>v>0));
+  const mesMay=S.meses.find(m=>(S.costoPorMes[m]??0)===max)||'';
+  const mesMen=S.meses.find(m=>(S.costoPorMes[m]??0)===min)||'';
+  const cantT=S.materiales.reduce((a,m)=>a+Object.values(m.cantidades).reduce((b,c)=>b+c,0),0);
+  return{total,prom,max,min,mesMay,mesMen,numM:vals.length,numMat:S.materiales.length,cantT};
+};
+const calcVar=()=>S.meses.map((mes,i)=>{
+  const c=S.costoPorMes[mes]??0;
+  const ant=i>0?(S.costoPorMes[S.meses[i-1]]??0):null;
+  const p=(ant!==null&&ant>0)?((c-ant)/ant*100):null;
+  return{mes,costo:c,pct:p};
+});
+
+/* ══════════════════════════════════════════
+   RENDER TAB 1: RESUMEN
+══════════════════════════════════════════ */
+const renderKPIs = ()=>{
+  const k=S.kpis;
+  const cs=[
+    {ico:'💰',lbl:'Total Anual',v:cop(k.total),d:`${k.numM} meses`,dt:'ne',c:'linear-gradient(135deg,#4f7ef7,#7c3aed)',bg:'rgba(79,126,247,.1)'},
+    {ico:'📅',lbl:'Promedio Mensual',v:cop(k.prom),d:'por mes',dt:'ne',c:'linear-gradient(135deg,#10b981,#06b6d4)',bg:'rgba(16,185,129,.1)'},
+    {ico:'📈',lbl:'Máximo Mensual',v:cop(k.max),d:k.mesMay,dt:'up',c:'linear-gradient(135deg,#06b6d4,#10b981)',bg:'rgba(6,182,212,.1)'},
+    {ico:'📉',lbl:'Mínimo Mensual',v:cop(k.min),d:k.mesMen,dt:'dn',c:'linear-gradient(135deg,#f59e0b,#ef4444)',bg:'rgba(245,158,11,.1)'},
+    {ico:'🧩',lbl:'Materiales',v:k.numMat.toString(),d:`${S.top10.length} top`,dt:'ne',c:'linear-gradient(135deg,#7c3aed,#4f7ef7)',bg:'rgba(124,58,237,.1)'},
+    {ico:'⚖️',lbl:'Cant. Total KG',v:fmtKg(k.cantT),d:'kg consumidos',dt:'ne',c:'linear-gradient(135deg,#ec4899,#f97316)',bg:'rgba(236,72,153,.1)'},
+  ];
+  document.getElementById('kg').innerHTML=cs.map(c=>`
+    <article class="kc fi" style="--kco:${c.c};--kbg:${c.bg}">
+      <div class="k-ico">${c.ico}</div>
+      <div class="k-lb">${c.lbl}</div>
+      <div class="k-v">${c.v}</div>
+      ${c.d?`<div class="k-d ${c.dt}">${c.dt==='up'?'▲':c.dt==='dn'?'▼':'•'} ${c.d}</div>`:''}
+    </article>`).join('');
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('#kg .fi').forEach((el,i)=>
+      setTimeout(()=>el.classList.add('vis'),i*60));
+  });
+};
+
+const renderVarMensual = ()=>{
+  document.getElementById('vg').innerHTML=S.variaciones.map(({mes,costo,pct:p})=>{
+    const hp=p!==null,up=hp&&p>=0;
+    const ps=hp?`${up?'+':''}${p.toFixed(1)}%`:'BASE';
+    const cl=!hp?'ne':up?'up':'dn';
+    return`<div class="vc fi">
+      <div><div class="vm-n">${mes}</div><div class="vm-v">${cop(costo)}</div></div>
+      <div class="vp ${cl}">${ps}</div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('#vg .fi').forEach((el,i)=>
+      setTimeout(()=>el.classList.add('vis'),i*50));
+  });
+};
+
+const renderTablaRes = ()=>{
+  const total=S.kpis.total;
+  document.getElementById('tbdg').textContent=`${S.top10.length} materiales`;
+  document.getElementById('tb-res').innerHTML=S.top10.map((m,i)=>{
+    const cant=Object.values(m.cantidades).reduce((a,b)=>a+b,0);
+    const cost=Object.values(m.costos).reduce((a,b)=>a+b,0);
+    const p=total>0?(cost/total)*100:0;
+    return`<tr>
+      <td><span class="rn ${i<3?'tp':''}">${i+1}</span></td>
+      <td class="mo">${m.codigo}</td>
+      <td>${m.nombre}</td>
+      <td class="tr mo">${fmtKg(cant)}</td>
+      <td class="tr mo bold">${cop(cost)}</td>
+      <td><div class="pb">
+        <div class="pb-b"><div class="pb-f" style="width:${p.toFixed(1)}%"></div></div>
+        <span class="pb-p">${p.toFixed(1)}%</span>
+      </div></td>
+    </tr>`;
+  }).join('');
+};
+
+/* ── Gráfica Línea ── */
+const gLinea=()=>{
+  killChart('l');
+  const ctx=document.getElementById('ch-l').getContext('2d');
+  const datos=S.meses.map(m=>S.costoPorMes[m]??0);
+  const g=ctx.createLinearGradient(0,0,0,280);
+  g.addColorStop(0,'rgba(79,126,247,.22)');g.addColorStop(1,'rgba(79,126,247,.01)');
+  charts['l']=new Chart(ctx,{type:'line',data:{labels:S.meses,datasets:[{
+    label:'Costo mensual',data:datos,borderColor:'#4f7ef7',backgroundColor:g,
+    borderWidth:2.5,fill:true,tension:0.4,pointRadius:6,
+    pointBackgroundColor:'#4f7ef7',pointBorderColor:'#fff',pointBorderWidth:2,pointHoverRadius:9
+  }]},options:{...bOpts(),scales:{y:yAx,x:xAx}}});
+};
+
+/* ── Gráfica Área ── */
+const gArea=()=>{
+  killChart('a');
+  const ctx=document.getElementById('ch-a').getContext('2d');
+  let ac=0;
+  const datos=S.meses.map(m=>{ac+=(S.costoPorMes[m]??0);return ac;});
+  const g=ctx.createLinearGradient(0,0,0,280);
+  g.addColorStop(0,'rgba(124,58,237,.28)');g.addColorStop(1,'rgba(124,58,237,.01)');
+  charts['a']=new Chart(ctx,{type:'line',data:{labels:S.meses,datasets:[{
+    label:'Costo acumulado',data:datos,borderColor:'#7c3aed',backgroundColor:g,
+    borderWidth:2.5,fill:true,tension:0.42,pointRadius:5,
+    pointBackgroundColor:'#7c3aed',pointBorderColor:'#fff',pointBorderWidth:2
+  }]},options:{...bOpts(),scales:{y:yAx,x:xAx}}});
+};
+
+/* ── Top 10 Barras Horizontales ── */
+const gBarras=()=>{
+  killChart('b');
+  const ctx=document.getElementById('ch-b').getContext('2d');
+  const lbls=S.top10.map(m=>m.nombre.length>35?m.nombre.substring(0,35)+'…':m.nombre);
+  const data=S.top10.map(m=>Object.values(m.costos).reduce((a,b)=>a+b,0));
+  charts['b']=new Chart(ctx,{type:'bar',data:{labels:lbls,datasets:[{
+    label:'Costo COP',data,
+    backgroundColor:PALETA.slice(0,10).map(c=>c+'cc'),
+    borderColor:PALETA.slice(0,10),borderWidth:1.5,borderRadius:6,borderSkipped:false
+  }]},options:{...bOpts(),indexAxis:'y',
+    scales:{
+      x:{...yAx,grid:{color:'rgba(79,126,247,.06)'}},
+      y:{grid:{display:false},ticks:{font:{family:"'Plus Jakarta Sans',sans-serif",size:9},color:'#374151'},border:{display:false}}
+    },
+    plugins:{...bOpts().plugins,legend:{display:false}}
+  }});
+};
+
+/* ── Pastel ── */
+const gPastel=()=>{
+  killChart('p');
+  const ctx=document.getElementById('ch-p').getContext('2d');
+  const lbls=S.top10.map(m=>m.nombre.length>24?m.nombre.substring(0,24)+'…':m.nombre);
+  const data=S.top10.map(m=>Object.values(m.costos).reduce((a,b)=>a+b,0));
+  charts['p']=new Chart(ctx,{type:'doughnut',data:{labels:lbls,datasets:[{
+    data,backgroundColor:PALETA.slice(0,10).map(c=>c+'d8'),
+    borderColor:PALETA.slice(0,10),borderWidth:2,hoverOffset:8
+  }]},options:{...bOpts(),cutout:'55%',
+    plugins:{...bOpts().plugins,
+      legend:{position:'right',labels:{font:{family:"'Plus Jakarta Sans',sans-serif",size:9},
+        color:'#374151',padding:7,boxWidth:9,boxHeight:9}},
+      tooltip:{...tipCOP,callbacks:{label(ctx){
+        const p=((ctx.parsed/S.kpis.total)*100).toFixed(1);
+        return` ${cop(ctx.parsed)}  (${p}%)`;
+      }}}
+    }
+  }});
+};
+
+/* ── Histograma ── */
+const gHist=()=>{
+  killChart('hist');
+  const ctx=document.getElementById('ch-hist').getContext('2d');
+  const vals=S.materiales.map(m=>Object.values(m.costos).reduce((a,b)=>a+b,0)).filter(c=>c>0);
+  if(!vals.length)return;
+  const B=8,mn=Math.min(...vals),mx=Math.max(...vals),st=(mx-mn)/B||1;
+  const counts=Array(B).fill(0);
+  vals.forEach(c=>{const i=Math.min(Math.floor((c-mn)/st),B-1);counts[i]++;});
+  const lbls=Array.from({length:B},(_,i)=>{
+    const lo=mn+i*st;
+    if(lo>=1e6)return`$${(lo/1e6).toFixed(0)}M`;
+    if(lo>=1e3)return`$${(lo/1e3).toFixed(0)}K`;
+    return`$${Math.round(lo).toLocaleString('es-CO')}`;
+  });
+  const g=ctx.createLinearGradient(0,0,0,250);
+  g.addColorStop(0,'rgba(6,182,212,.7)');g.addColorStop(1,'rgba(6,182,212,.08)');
+  charts['hist']=new Chart(ctx,{type:'bar',data:{labels:lbls,datasets:[{
+    label:'Materiales',data:counts,backgroundColor:g,
+    borderColor:'#06b6d4',borderWidth:1.5,borderRadius:5,borderSkipped:false
+  }]},options:{...bOpts(),
+    scales:{y:{...yAx,ticks:{...yAx.ticks,callback:v=>v}},x:{...xAx,ticks:{...xAx.ticks,maxRotation:50}}},
+    plugins:{...bOpts().plugins,legend:{display:false},
+      tooltip:{...tipCOP,callbacks:{label:ctx=>` ${ctx.parsed.y} materiales`}}}
+  }});
+};
+
+/* ── Dispersión ── */
+const gDisp=()=>{
+  killChart('disp');
+  const ctx=document.getElementById('ch-disp').getContext('2d');
+  const pts=S.materiales.map(m=>({
+    x:Object.values(m.cantidades).reduce((a,b)=>a+b,0),
+    y:Object.values(m.costos).reduce((a,b)=>a+b,0),n:m.nombre
+  })).filter(p=>p.x>0&&p.y>0);
+  charts['disp']=new Chart(ctx,{type:'scatter',data:{datasets:[{
+    label:'Materiales',data:pts,
+    backgroundColor:'#7c3aed99',borderColor:'#7c3aed',
+    borderWidth:1.5,pointRadius:5,pointHoverRadius:8
+  }]},options:{...bOpts(),
+    scales:{
+      y:{...yAx,title:{display:true,text:'Costo COP',color:'#9ca3af',
+        font:{family:"'Plus Jakarta Sans',sans-serif",size:9}}},
+      x:{...xAx,ticks:{...xAx.ticks,callback:v=>v>=1e3?`${(v/1e3).toFixed(0)}K`:v},
+        title:{display:true,text:'Cantidad (KG)',color:'#9ca3af',
+          font:{family:"'Plus Jakarta Sans',sans-serif",size:9}}}
+    },
+    plugins:{...bOpts().plugins,legend:{display:false},
+      tooltip:{...tipCOP,callbacks:{label(ctx){
+        return[` ${ctx.raw.n?.substring(0,30)}`,
+          ` Cant: ${fmtKg(ctx.raw.x)} KG`,
+          ` Costo: ${cop(ctx.raw.y)}`];
+      }}}}
+  }});
+};
+
+const renderResumen=()=>{
+  renderKPIs();
+  renderVarMensual();
+  renderTablaRes();
+  requestAnimationFrame(()=>setTimeout(()=>{
+    gLinea();gArea();gBarras();gPastel();gHist();gDisp();
+  },180));
+};
+
+/* ══════════════════════════════════════════
+   RENDER TAB 2: ANÁLISIS MENSUAL
+══════════════════════════════════════════ */
+window.renderMensual = ()=>{
+  const mes=document.getElementById('sel-mes').value;
+  const c=document.getElementById('mens-content');
+  if(!mes){
+    c.innerHTML='<div class="empty-state fi vis"><div class="ei">📅</div><div>Selecciona un mes para ver el análisis</div></div>';
+    return;
+  }
+  const costoMes=S.costoPorMes[mes]??0;
+  const mesIdx=S.meses.indexOf(mes);
+  const antMes=mesIdx>0?S.meses[mesIdx-1]:null;
+  const costoAnt=antMes?(S.costoPorMes[antMes]??0):null;
+  const varP=costoAnt?varPct(costoMes,costoAnt):null;
+
+  // Materiales de este mes ordenados por costo
+  const matMes=S.materiales
+    .map(m=>({
+      ...m,
+      costoMes:m.costos[mes]??0,
+      cantMes:m.cantidades[mes]??0,
+    }))
+    .filter(m=>m.costoMes>0)
+    .sort((a,b)=>b.costoMes-a.costoMes);
+
+  const numMat=matMes.length;
+  const cantTotal=matMes.reduce((a,m)=>a+m.cantMes,0);
+
+  // KPIs del mes
+  const kpisMes=[
+    {ico:'💰',lbl:'Costo del Mes',v:cop(costoMes),d:mes,dt:'ne',c:'linear-gradient(135deg,#4f7ef7,#7c3aed)',bg:'rgba(79,126,247,.1)'},
+    {ico:'📊',lbl:'Vs Mes Anterior',v:varP!==null?`${varP>=0?'+':''}${varP.toFixed(1)}%`:'—',d:antMes||'—',dt:varP===null?'ne':varP>=0?'up':'dn',c:'linear-gradient(135deg,#10b981,#06b6d4)',bg:'rgba(16,185,129,.1)'},
+    {ico:'🧩',lbl:'Insumos Activos',v:numMat.toString(),d:'con consumo este mes',dt:'ne',c:'linear-gradient(135deg,#7c3aed,#4f7ef7)',bg:'rgba(124,58,237,.1)'},
+    {ico:'⚖️',lbl:'Cantidad Total',v:fmtKg(cantTotal),d:'kilogramos del mes',dt:'ne',c:'linear-gradient(135deg,#f59e0b,#ef4444)',bg:'rgba(245,158,11,.1)'},
+    {ico:'🥇',lbl:'Insumo Principal',v:matMes[0]?.costoMes?cop(matMes[0].costoMes):'—',d:matMes[0]?.nombre?.substring(0,25)||'—',dt:'ne',c:'linear-gradient(135deg,#ec4899,#f97316)',bg:'rgba(236,72,153,.1)'},
+    {ico:'📈',lbl:'% del Total Anual',v:pct(costoMes,S.kpis.total),d:`de $ ${(S.kpis.total/1e6).toFixed(0)}M`,dt:'ne',c:'linear-gradient(135deg,#06b6d4,#10b981)',bg:'rgba(6,182,212,.1)'},
+  ];
+
+  // Tabla completa del mes
+  const filasTbl=matMes.map((m,i)=>{
+    const p=costoMes>0?(m.costoMes/costoMes*100):0;
+    const mesAnt=antMes?(m.costos[antMes]??0):null;
+    const vp=mesAnt!==null?varPct(m.costoMes,mesAnt):null;
+    const vpHtml=vp!==null
+      ?`<span class="var-pill ${vp>=0?'up':'dn'}">${vp>=0?'▲':'▼'} ${Math.abs(vp).toFixed(1)}%</span>`
+      :'<span class="var-pill ne">BASE</span>';
+    return`<tr>
+      <td><span class="rn ${i<3?'tp':''}">${i+1}</span></td>
+      <td class="mo">${m.codigo}</td>
+      <td>${m.nombre}</td>
+      <td class="tr mo">${fmtKg(m.cantMes)}</td>
+      <td class="tr mo bold">${cop(m.costoMes)}</td>
+      <td><div class="pb">
+        <div class="pb-b"><div class="pb-f" style="width:${p.toFixed(1)}%"></div></div>
+        <span class="pb-p">${p.toFixed(1)}%</span>
+      </div></td>
+      <td>${vpHtml}</td>
+    </tr>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div class="kg fi vis" id="kg-mes" style="margin-bottom:18px">
+      ${kpisMes.map(k=>`
+      <article class="kc" style="--kco:${k.c};--kbg:${k.bg}">
+        <div class="k-ico">${k.ico}</div>
+        <div class="k-lb">${k.lbl}</div>
+        <div class="k-v">${k.v}</div>
+        ${k.d?`<div class="k-d ${k.dt}">${k.dt==='up'?'▲':k.dt==='dn'?'▼':'•'} ${k.d}</div>`:''}
+      </article>`).join('')}
+    </div>
+
+    <div class="g2 fi vis" style="margin-bottom:18px">
+      <div class="cc">
+        <div class="cch">
+          <div><div class="cc-t">Distribución del Mes · ${mes}</div>
+            <div class="cc-s">Top insumos por costo en COP</div></div>
+          <span class="cc-b">Barras</span>
+        </div>
+        <div class="cw h320"><canvas id="ch-mes-bar"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cch">
+          <div><div class="cc-t">Participación · ${mes}</div>
+            <div class="cc-s">% de cada insumo en el mes</div></div>
+          <span class="cc-b">Pastel</span>
+        </div>
+        <div class="cw h320"><canvas id="ch-mes-pie"></canvas></div>
+      </div>
+    </div>
+
+    <div class="cc fi vis" style="margin-bottom:18px">
+      <div class="cch">
+        <div><div class="cc-t">Todos los Insumos · ${mes}</div>
+          <div class="cc-s">${numMat} insumos con consumo · valores en COP</div></div>
+        <span class="cc-b">${numMat} insumos</span>
+      </div>
+      <div class="tw" style="max-height:420px;overflow-y:auto">
+        <table class="tbl">
+          <thead><tr>
+            <th>#</th><th>Código</th><th>Insumo</th>
+            <th class="tr">Cant. KG</th>
+            <th class="tr">Costo COP</th>
+            <th>Participación</th>
+            <th>Vs Mes Ant.</th>
+          </tr></thead>
+          <tbody>${filasTbl}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  // Renderizar gráficas del mes
+  requestAnimationFrame(()=>{
+    // Top 10 barras del mes
+    killChart('mes-bar');
+    const top10mes=matMes.slice(0,10);
+    const ctxB=document.getElementById('ch-mes-bar').getContext('2d');
+    const gB=ctxB.createLinearGradient(0,0,200,0);
+    gB.addColorStop(0,'rgba(79,126,247,.8)');gB.addColorStop(1,'rgba(79,126,247,.3)');
+    charts['mes-bar']=new Chart(ctxB,{type:'bar',
+      data:{
+        labels:top10mes.map(m=>m.nombre.length>30?m.nombre.substring(0,30)+'…':m.nombre),
+        datasets:[{label:'Costo COP',data:top10mes.map(m=>m.costoMes),
+          backgroundColor:PALETA.slice(0,10).map(c=>c+'cc'),
+          borderColor:PALETA.slice(0,10),borderWidth:1.5,borderRadius:5,borderSkipped:false}]
+      },
+      options:{...bOpts(),indexAxis:'y',
+        scales:{
+          x:{...yAx,grid:{color:'rgba(79,126,247,.06)'}},
+          y:{grid:{display:false},ticks:{font:{family:"'Plus Jakarta Sans',sans-serif",size:8.5},color:'#374151'},border:{display:false}}
+        },
+        plugins:{...bOpts().plugins,legend:{display:false}}
+      }
+    });
+
+    // Pastel del mes
+    killChart('mes-pie');
+    const top8mes=matMes.slice(0,8);
+    const otrosCosto=matMes.slice(8).reduce((a,m)=>a+m.costoMes,0);
+    const pieLbls=[...top8mes.map(m=>m.nombre.length>20?m.nombre.substring(0,20)+'…':m.nombre)];
+    const pieData=[...top8mes.map(m=>m.costoMes)];
+    if(otrosCosto>0){pieLbls.push('Otros');pieData.push(otrosCosto);}
+    const ctxP=document.getElementById('ch-mes-pie').getContext('2d');
+    charts['mes-pie']=new Chart(ctxP,{type:'doughnut',
+      data:{labels:pieLbls,datasets:[{data:pieData,
+        backgroundColor:[...PALETA.slice(0,8).map(c=>c+'d0'),'#9ca3af88'],
+        borderColor:[...PALETA.slice(0,8),'#9ca3af'],borderWidth:2,hoverOffset:7}]},
+      options:{...bOpts(),cutout:'54%',
+        plugins:{...bOpts().plugins,
+          legend:{position:'right',labels:{font:{family:"'Plus Jakarta Sans',sans-serif",size:9},
+            color:'#374151',padding:6,boxWidth:9,boxHeight:9}},
+          tooltip:{...tipCOP,callbacks:{label(ctx){
+            const p=((ctx.parsed/costoMes)*100).toFixed(1);
+            return` ${cop(ctx.parsed)}  (${p}%)`;
+          }}}
+        }
+      }
+    });
+  });
+};
+
+/* ══════════════════════════════════════════
+   RENDER TAB 3: FICHA POR INSUMO
+══════════════════════════════════════════ */
+window.renderFicha = ()=>{
+  const nombre=document.getElementById('sel-ins').value;
+  const c=document.getElementById('ficha-content');
+  if(!nombre){
+    c.innerHTML='<div class="empty-state fi vis"><div class="ei">🔍</div><div>Selecciona un insumo para ver su ficha</div></div>';
+    return;
+  }
+  const mat=S.materiales.find(m=>m.nombre===nombre);
+  if(!mat){c.innerHTML='<div class="empty-state fi vis"><div class="ei">❌</div><div>Insumo no encontrado</div></div>';return;}
+
+  const costoAnual=Object.values(mat.costos).reduce((a,b)=>a+b,0);
+  const cantAnual=Object.values(mat.cantidades).reduce((a,b)=>a+b,0);
+  const costosMes=S.meses.map(m=>mat.costos[m]??0).filter(v=>v>0);
+  const promMens=costoAnual/(S.meses.length||1);
+  const maxCosto=Math.max(...S.meses.map(m=>mat.costos[m]??0));
+  const minCosto=Math.min(...S.meses.map(m=>mat.costos[m]??0).filter(v=>v>0));
+  const mesMay=S.meses.find(m=>(mat.costos[m]??0)===maxCosto)||'';
+  const mesMen=S.meses.find(m=>(mat.costos[m]??0)===minCosto)||'';
+  const pctAnual=pct(costoAnual,S.kpis.total);
+  const mesesActivos=costosMes.length;
+
+  const kFicha=[
+    {ico:'💰',lbl:'Costo Anual',v:cop(costoAnual),d:pctAnual+' del total',dt:'ne',c:'linear-gradient(135deg,#4f7ef7,#7c3aed)',bg:'rgba(79,126,247,.1)'},
+    {ico:'📅',lbl:'Promedio Mensual',v:cop(promMens),d:'por mes',dt:'ne',c:'linear-gradient(135deg,#10b981,#06b6d4)',bg:'rgba(16,185,129,.1)'},
+    {ico:'📈',lbl:'Mes de Mayor Costo',v:cop(maxCosto),d:mesMay,dt:'up',c:'linear-gradient(135deg,#06b6d4,#10b981)',bg:'rgba(6,182,212,.1)'},
+    {ico:'📉',lbl:'Mes de Menor Costo',v:cop(minCosto),d:mesMen,dt:'dn',c:'linear-gradient(135deg,#f59e0b,#ef4444)',bg:'rgba(245,158,11,.1)'},
+    {ico:'⚖️',lbl:'Cantidad Anual',v:fmtKg(cantAnual),d:'kg consumidos',dt:'ne',c:'linear-gradient(135deg,#7c3aed,#4f7ef7)',bg:'rgba(124,58,237,.1)'},
+    {ico:'📆',lbl:'Meses Activos',v:mesesActivos.toString(),d:'de '+S.meses.length+' meses',dt:'ne',c:'linear-gradient(135deg,#ec4899,#f97316)',bg:'rgba(236,72,153,.1)'},
+  ];
+
+  // Tabla 12 meses del insumo
+  const filasMes=S.meses.map((mes,i)=>{
+    const cost=mat.costos[mes]??0;
+    const cant=mat.cantidades[mes]??0;
+    const ant=i>0?(mat.costos[S.meses[i-1]]??0):null;
+    const vp=ant!==null?varPct(cost,ant):null;
+    const vpHtml=vp!==null
+      ?`<span class="var-pill ${vp>=0?'up':'dn'}">${vp>=0?'+':''}${vp.toFixed(1)}%</span>`
+      :'<span class="var-pill ne">BASE</span>';
+    const pMes=pct(cost,costoAnual);
+    const pTotal=pct(cost,S.kpis.total);
+    return`<tr${cost===0?' style="opacity:.4"':''}>
+      <td class="bold">${mes}</td>
+      <td class="tr mo">${fmtKg(cant)}</td>
+      <td class="tr mo bold">${cost>0?cop(cost):'Sin consumo'}</td>
+      <td><div class="pb">
+        <div class="pb-b"><div class="pb-f" style="width:${parseFloat(pMes).toFixed(1)}%;background:linear-gradient(90deg,#4f7ef7,#7c3aed)"></div></div>
+        <span class="pb-p">${pMes}</span>
+      </div></td>
+      <td class="tr">${pTotal}</td>
+      <td>${vpHtml}</td>
+    </tr>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div class="ficha-header fi vis">
+      <div>
+        <div class="ficha-name">${mat.nombre}</div>
+        <div class="ficha-code">Código: ${mat.codigo} · ${mesesActivos} meses con consumo · ${pctAnual} del total anual</div>
+      </div>
+      <div class="ficha-actions">
+        <button class="btn btn-pdf show btn-sm" onclick="imprimirFicha('${mat.nombre.replace(/'/g,"\\'")}')">
+          🖨 PDF esta ficha
+        </button>
+      </div>
+    </div>
+
+    <div class="kg fi vis" style="margin-bottom:16px">
+      ${kFicha.map(k=>`
+      <article class="kc" style="--kco:${k.c};--kbg:${k.bg}">
+        <div class="k-ico">${k.ico}</div>
+        <div class="k-lb">${k.lbl}</div>
+        <div class="k-v">${k.v}</div>
+        ${k.d?`<div class="k-d ${k.dt}">${k.dt==='up'?'▲':k.dt==='dn'?'▼':'•'} ${k.d}</div>`:''}
+      </article>`).join('')}
+    </div>
+
+    <div class="g2 fi vis" style="margin-bottom:16px">
+      <div class="cc">
+        <div class="cch">
+          <div><div class="cc-t">Costo Mensual</div>
+            <div class="cc-s">Evolución mes a mes en COP</div></div>
+          <span class="cc-b">Barras</span>
+        </div>
+        <div class="cw h250"><canvas id="ch-ficha-bar"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cch">
+          <div><div class="cc-t">Cantidad Mensual</div>
+            <div class="cc-s">Kilogramos consumidos por mes</div></div>
+          <span class="cc-b">Línea</span>
+        </div>
+        <div class="cw h250"><canvas id="ch-ficha-kg"></canvas></div>
+      </div>
+    </div>
+
+    <div class="cc fi vis" style="margin-bottom:16px">
+      <div class="cch">
+        <div><div class="cc-t">Detalle por Mes · ${mat.nombre}</div>
+          <div class="cc-s">Cantidad, costo, participación y variación mes a mes</div></div>
+      </div>
+      <div class="tw">
+        <table class="tbl">
+          <thead><tr>
+            <th>Mes</th><th class="tr">Cant. KG</th>
+            <th class="tr">Costo COP</th>
+            <th>% del Insumo</th>
+            <th class="tr">% del Total</th>
+            <th>Variación</th>
+          </tr></thead>
+          <tbody>${filasMes}</tbody>
+          <tfoot><tr style="background:var(--deep);font-weight:700">
+            <td>TOTAL</td>
+            <td class="tr mo">${fmtKg(cantAnual)}</td>
+            <td class="tr mo bold">${cop(costoAnual)}</td>
+            <td>100%</td>
+            <td class="tr">${pctAnual}</td>
+            <td>—</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+
+  // Gráficas de la ficha
+  requestAnimationFrame(()=>{
+    const datos=S.meses.map(m=>mat.costos[m]??0);
+    const datosKg=S.meses.map(m=>mat.cantidades[m]??0);
+
+    killChart('ficha-bar');
+    const g1=document.getElementById('ch-ficha-bar').getContext('2d');
+    const gr=g1.createLinearGradient(0,0,0,250);
+    gr.addColorStop(0,'rgba(79,126,247,.7)');gr.addColorStop(1,'rgba(79,126,247,.1)');
+    charts['ficha-bar']=new Chart(g1,{type:'bar',
+      data:{labels:S.meses,datasets:[{label:'Costo COP',data:datos,
+        backgroundColor:gr,borderColor:'#4f7ef7',borderWidth:1.5,borderRadius:7,borderSkipped:false}]},
+      options:{...bOpts(),scales:{y:yAx,x:xAx},
+        plugins:{...bOpts().plugins,legend:{display:false}}}
+    });
+
+    killChart('ficha-kg');
+    const g2=document.getElementById('ch-ficha-kg').getContext('2d');
+    const gr2=g2.createLinearGradient(0,0,0,250);
+    gr2.addColorStop(0,'rgba(16,185,129,.55)');gr2.addColorStop(1,'rgba(16,185,129,.05)');
+    charts['ficha-kg']=new Chart(g2,{type:'line',
+      data:{labels:S.meses,datasets:[{label:'Cantidad KG',data:datosKg,
+        borderColor:'#10b981',backgroundColor:gr2,borderWidth:2.2,fill:true,
+        tension:0.38,pointRadius:5,pointBackgroundColor:'#10b981',
+        pointBorderColor:'#fff',pointBorderWidth:2}]},
+      options:{...bOpts(),scales:{
+          y:{...yAx,ticks:{...yAx.ticks,callback:v=>v>=1e3?`${(v/1e3).toFixed(0)}K`:v}},
+          x:xAx
+        },
+        plugins:{...bOpts().plugins,legend:{display:false},
+          tooltip:{...tipCOP,callbacks:{label:ctx=>` ${fmtKg(ctx.parsed.y)} KG`}}}
+      }
+    });
+  });
+};
+
+/* ── PDF individual de ficha ── */
+window.imprimirFicha = nombre=>{
+  const mat=S.materiales.find(m=>m.nombre===nombre);
+  if(!mat)return;
+
+  const costoAnual=Object.values(mat.costos).reduce((a,b)=>a+b,0);
+  const cantAnual=Object.values(mat.cantidades).reduce((a,b)=>a+b,0);
+  const promMens=costoAnual/(S.meses.length||1);
+  const maxCosto=Math.max(...S.meses.map(m=>mat.costos[m]??0));
+  const minCosto=Math.min(...S.meses.map(m=>mat.costos[m]??0).filter(v=>v>0));
+  const mesMay=S.meses.find(m=>(mat.costos[m]??0)===maxCosto)||'';
+  const mesMen=S.meses.find(m=>(mat.costos[m]??0)===minCosto)||'';
+  const pctA=pct(costoAnual,S.kpis.total);
+  const mesesA=S.meses.filter(m=>(mat.costos[m]??0)>0).length;
+
+  const filas=S.meses.map((mes,i)=>{
+    const cost=mat.costos[mes]??0;
+    const cant=mat.cantidades[mes]??0;
+    const ant=i>0?(mat.costos[S.meses[i-1]]??0):null;
+    const vp=ant!==null?varPct(cost,ant):null;
+    const vpStr=vp!==null?`${vp>=0?'+':''}${vp.toFixed(1)}%`:'BASE';
+    return`<tr style="${cost===0?'opacity:.4':''}">
+      <td style="font-weight:700;padding:6px 10px;border-bottom:1px solid #dde3ee">${mes}</td>
+      <td style="text-align:right;font-family:monospace;padding:6px 10px;border-bottom:1px solid #dde3ee">${fmtKg(cant)}</td>
+      <td style="text-align:right;font-family:monospace;font-weight:700;padding:6px 10px;border-bottom:1px solid #dde3ee">${cost>0?cop(cost):'Sin consumo'}</td>
+      <td style="text-align:right;padding:6px 10px;border-bottom:1px solid #dde3ee">${pct(cost,costoAnual)}</td>
+      <td style="text-align:right;padding:6px 10px;border-bottom:1px solid #dde3ee">${pct(cost,S.kpis.total)}</td>
+      <td style="text-align:right;color:${vp===null?'#9ca3af':vp>=0?'#10b981':'#ef4444'};font-weight:700;padding:6px 10px;border-bottom:1px solid #dde3ee">${vpStr}</td>
+    </tr>`;
+  }).join('');
+
+  const kpis=[
+    ['💰 Costo Anual',cop(costoAnual)],['📅 Promedio Mensual',cop(promMens)],
+    ['📈 Mes Mayor Costo',`${cop(maxCosto)} (${mesMay})`],
+    ['📉 Mes Menor Costo',`${cop(minCosto)} (${mesMen})`],
+    ['⚖️ Cantidad Anual',fmtKg(cantAnual)+' KG'],
+    ['📊 % del Total Anual',pctA],
+    ['📆 Meses Activos',`${mesesA} de ${S.meses.length}`],
+    ['🔖 Código',mat.codigo.toString()],
+  ];
+
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html lang="es"><head>
+    <meta charset="UTF-8">
+    <title>Ficha Insumo · ${mat.nombre}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Outfit',sans-serif;background:#eaeff7;padding:24px;color:#111827;
+        -webkit-print-color-adjust:exact;print-color-adjust:exact}
+      .header{background:linear-gradient(135deg,#4f7ef7,#7c3aed);color:#fff;
+        border-radius:14px;padding:22px 24px;margin-bottom:20px}
+      .h-title{font-size:1.35rem;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+      .h-sub{font-size:.78rem;opacity:.82}
+      .kg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+      .kc{background:#f0f4fb;border-radius:10px;padding:14px;
+        border-left:3px solid #4f7ef7}
+      .k-lb{font-size:.62rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+      .k-v{font-family:'JetBrains Mono',monospace;font-size:.88rem;font-weight:700;color:#111827;word-break:break-all}
+      .k-d{font-size:.65rem;color:#9ca3af;margin-top:2px}
+      .cc{background:#f0f4fb;border-radius:12px;padding:16px;margin-bottom:16px}
+      .cc-t{font-size:.92rem;font-weight:700;color:#111827;margin-bottom:12px}
+      table{width:100%;border-collapse:collapse;font-size:.78rem}
+      th{background:#dce3ef;padding:7px 10px;text-align:left;font-size:.64rem;
+        font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em}
+      tfoot td{background:#dce3ef;font-weight:700;padding:7px 10px;font-size:.78rem}
+      .footer{text-align:center;font-size:.65rem;color:#9ca3af;margin-top:16px;
+        padding-top:10px;border-top:1px solid #dce3ef}
+      @media print{body{background:#eaeff7!important}*{-webkit-print-color-adjust:exact!important}}
+    </style>
+  </head><body>
+    <div class="header">
+      <div class="h-title">${mat.nombre}</div>
+      <div class="h-sub">Código: ${mat.codigo} · Ficha de Insumo · Análisis de Consumos 2025 · Pesos Colombianos (COP)</div>
+    </div>
+    <div class="kg">
+      ${kpis.map(([l,v])=>`<div class="kc">
+        <div class="k-lb">${l}</div>
+        <div class="k-v">${v}</div>
+      </div>`).join('')}
+    </div>
+    <div class="cc">
+      <div class="cc-t">Detalle Mensual</div>
+      <table>
+        <thead><tr>
+          <th>Mes</th><th style="text-align:right">Cant. KG</th>
+          <th style="text-align:right">Costo COP</th>
+          <th style="text-align:right">% Insumo</th>
+          <th style="text-align:right">% Total</th>
+          <th style="text-align:right">Variación</th>
+        </tr></thead>
+        <tbody>${filas}</tbody>
+        <tfoot><tr>
+          <td>TOTAL</td>
+          <td style="text-align:right;font-family:'JetBrains Mono',monospace">${fmtKg(cantAnual)}</td>
+          <td style="text-align:right;font-family:'JetBrains Mono',monospace">${cop(costoAnual)}</td>
+          <td style="text-align:right">100%</td>
+          <td style="text-align:right">${pctA}</td>
+          <td>—</td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <div class="footer">
+      DataFlow Pro · Generado el ${new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}
+    </div>
+    <script>window.onload=()=>setTimeout(()=>window.print(),400);<\/script>
+  </body></html>`);
+  win.document.close();
+};
+
+/* ══════════════════════════════════════════
+   RENDER TAB 4: COMPARATIVA
+══════════════════════════════════════════ */
+window.renderComparativa = ()=>{
+  const v1=document.getElementById('cmp1').value;
+  const v2=document.getElementById('cmp2').value;
+  const v3=document.getElementById('cmp3').value;
+  const c=document.getElementById('comp-content');
+
+  const selected=[v1,v2,v3].filter(Boolean);
+  if(selected.length<2){
+    c.innerHTML='<div class="empty-state fi vis"><div class="ei">📈</div><div>Selecciona al menos 2 insumos para comparar</div></div>';
+    return;
+  }
+
+  const mats=selected.map((n,i)=>({mat:S.materiales.find(m=>m.nombre===n),color:['#4f7ef7','#7c3aed','#10b981'][i]}))
+    .filter(x=>x.mat);
+
+  if(mats.length<2){
+    c.innerHTML='<div class="empty-state fi vis"><div class="ei">❌</div><div>Insumos no encontrados</div></div>';
+    return;
+  }
+
+  // Tabla comparativa
+  const filasCmp=S.meses.map(mes=>{
+    const celdas=mats.map(({mat,color})=>{
+      const cost=mat.costos[mes]??0;
+      return`<td class="tr mo" style="color:${cost>0?color:'#9ca3af'}">${cost>0?cop(cost):'—'}</td>`;
+    }).join('');
+    return`<tr><td class="bold">${mes}</td>${celdas}</tr>`;
+  }).join('');
+
+  const totalesRow=mats.map(({mat,color})=>{
+    const t=Object.values(mat.costos).reduce((a,b)=>a+b,0);
+    return`<td class="tr mo bold" style="color:${color}">${cop(t)}</td>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div class="cc fi vis" style="margin-bottom:16px">
+      <div class="cch">
+        <div><div class="cc-t">Evolución Mensual Comparativa</div>
+          <div class="cc-s">Costo mensual en COP por insumo</div></div>
+        <span class="cc-b">Líneas</span>
+      </div>
+      <div class="cw h320"><canvas id="ch-cmp-l"></canvas></div>
+    </div>
+
+    <div class="cc fi vis" style="margin-bottom:16px">
+      <div class="cch">
+        <div><div class="cc-t">Comparativa de Barras por Mes</div>
+          <div class="cc-s">Distribución mensual lado a lado</div></div>
+        <span class="cc-b">Barras</span>
+      </div>
+      <div class="cw h320"><canvas id="ch-cmp-b"></canvas></div>
+    </div>
+
+    <div class="cc fi vis" style="margin-bottom:16px">
+      <div class="cch">
+        <div><div class="cc-t">Tabla Comparativa</div>
+          <div class="cc-s">Valores mensuales en COP por insumo</div></div>
+      </div>
+      <div class="tw">
+        <table class="tbl">
+          <thead><tr>
+            <th>Mes</th>
+            ${mats.map(({mat,color})=>`<th style="text-align:right;color:${color}">${mat.nombre.substring(0,22)}${mat.nombre.length>22?'…':''}</th>`).join('')}
+          </tr></thead>
+          <tbody>${filasCmp}</tbody>
+          <tfoot><tr style="background:var(--deep)">
+            <td class="bold">TOTAL ANUAL</td>${totalesRow}
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+
+  requestAnimationFrame(()=>{
+    // Líneas comparativas
+    killChart('cmp-l');
+    const ctxL=document.getElementById('ch-cmp-l').getContext('2d');
+    charts['cmp-l']=new Chart(ctxL,{type:'line',
+      data:{labels:S.meses,datasets:mats.map(({mat,color})=>({
+        label:mat.nombre.length>30?mat.nombre.substring(0,30)+'…':mat.nombre,
+        data:S.meses.map(m=>mat.costos[m]??0),
+        borderColor:color,backgroundColor:'transparent',
+        borderWidth:2.2,tension:0.38,pointRadius:5,
+        pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:2
+      }))},
+      options:{...bOpts(),scales:{y:yAx,x:xAx}}
+    });
+
+    // Barras agrupadas
+    killChart('cmp-b');
+    const ctxB=document.getElementById('ch-cmp-b').getContext('2d');
+    charts['cmp-b']=new Chart(ctxB,{type:'bar',
+      data:{labels:S.meses,datasets:mats.map(({mat,color})=>({
+        label:mat.nombre.length>22?mat.nombre.substring(0,22)+'…':mat.nombre,
+        data:S.meses.map(m=>mat.costos[m]??0),
+        backgroundColor:color+'aa',borderColor:color,
+        borderWidth:1.2,borderRadius:4,borderSkipped:false
+      }))},
+      options:{...bOpts(),scales:{y:yAx,x:xAx}}
+    });
+  });
+};
+
+/* ══════════════════════════════════════════
+   TABS NAVIGATION
+══════════════════════════════════════════ */
+window.showTab = id=>{
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const sec=document.getElementById(`tab-${id}`);
+  if(sec){sec.classList.add('active');}
+  const btn=document.getElementById(`tb-${id}`);
+  if(btn){btn.classList.add('active');}
+  // Fade in del tab activo
+  requestAnimationFrame(()=>setTimeout(()=>fadeIn(sec||document),100));
+};
+
+/* ══════════════════════════════════════════
+   EXPORT PDF GENERAL
+══════════════════════════════════════════ */
+window.exportarPDF=()=>{
+  document.querySelectorAll('.fi').forEach(el=>el.classList.add('vis'));
+  setTimeout(()=>window.print(),250);
+};
+
+/* ══════════════════════════════════════════
+   FLUJO PRINCIPAL: handleFile
+══════════════════════════════════════════ */
+const handleFile = async file=>{
+  if(!file)return;
+  ldr(true,'Leyendo archivo Excel...');
+  setStatus(false,'Procesando...');
+  try{
+    const wb=await parseXLSX(file);
+
+    ldr(true,'Leyendo resumen mensual (Hoja9)...');
+    await tick();
+
+    let cpm=readHoja9(wb);
+    if(!cpm||Object.keys(cpm).length<2){
+      ldr(true,'Leyendo hojas mensuales...');
+      cpm=readHojasMes(wb);
+    }
+    if(!cpm||!Object.keys(cpm).length)
+      throw new Error('No se encontraron datos de costos mensuales.');
+
+    S.meses=MESES.filter(m=>cpm[m]!==undefined);
+    S.costoPorMes=cpm;
+
+    ldr(true,'Leyendo materiales e insumos...');
+    await tick();
+
+    S.materiales=readMateriales(wb);
+    if(!S.materiales.length)toast('No se encontraron materiales en la hoja de consumos','err');
+
+    S.top10=[...S.materiales]
+      .sort((a,b)=>Object.values(b.costos).reduce((x,y)=>x+y,0)-Object.values(a.costos).reduce((x,y)=>x+y,0))
+      .slice(0,10);
+
+    S.kpis=calcKPIs();
+    S.variaciones=calcVar();
+
+    ldr(true,'Generando dashboard completo...');
+    await tick();
+
+    // Ocultar welcome, mostrar dashboard
+    document.getElementById('wel').style.display='none';
+    document.getElementById('tabs-nav').classList.add('show');
+    document.querySelectorAll('.section').forEach(s=>{s.style.display='';});
+    showTab('resumen');
+
+    // Info del archivo
+    const now=new Date();
+    document.getElementById('fn').textContent=file.name;
+    document.getElementById('fm').textContent=
+      `Cargado el ${now.toLocaleDateString('es-CO')} · ${(file.size/1024).toFixed(1)} KB`;
+    document.getElementById('fbs').textContent=`${wb.SheetNames.length} hojas`;
+    document.getElementById('fbr').textContent=`${S.materiales.length} materiales`;
+    const fechaStr=now.toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.querySelectorAll('#fecha-r,.fecha-r2').forEach(el=>el.textContent=fechaStr);
+
+    // Llenar selectores
+    fillSelectors();
+
+    // Render tab 1
+    renderResumen();
+
+    document.getElementById('btn-pdf').classList.add('show');
+    setStatus(true,`${S.meses.length} meses · ${S.materiales.length} materiales`);
+    toast(`${S.meses.length} meses y ${S.materiales.length} materiales cargados correctamente`,'ok');
+
+  }catch(err){
+    console.error('[DataFlow Pro]',err);
+    toast(`Error: ${err.message}`,'err');
+    setStatus(false,'Error al cargar');
+  }finally{ldr(false);}
+};
+
+/* ── Llenar todos los selectores ── */
+const fillSelectors=()=>{
+  const sorted=[...S.materiales].sort((a,b)=>
+    Object.values(b.costos).reduce((x,y)=>x+y,0)-Object.values(a.costos).reduce((x,y)=>x+y,0));
+
+  // Selector mes
+  const selMes=document.getElementById('sel-mes');
+  selMes.innerHTML='<option value="">— Selecciona un mes —</option>';
+  S.meses.forEach(m=>{
+    const o=document.createElement('option');
+    o.value=m;o.textContent=m;
+    selMes.appendChild(o);
+  });
+
+  // Selectores insumo (ficha, comparativa x3)
+  ['sel-ins','cmp1','cmp2','cmp3'].forEach((id,i)=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const placeholder=['— Selecciona un insumo —','— Insumo 1 —','— Insumo 2 —','— Insumo 3 (opcional) —'][i];
+    sel.innerHTML=`<option value="">${placeholder}</option>`;
+    sorted.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m.nombre;
+      o.textContent=m.nombre.length>58?m.nombre.substring(0,58)+'…':m.nombre;
+      sel.appendChild(o);
+    });
+  });
+
+  // Pre-seleccionar primer insumo en ficha
+  if(sorted.length>0){
+    document.getElementById('sel-ins').value=sorted[0].nombre;
+  }
+  // Pre-seleccionar primeros 2 en comparativa
+  if(sorted.length>1){
+    document.getElementById('cmp1').value=sorted[0].nombre;
+    document.getElementById('cmp2').value=sorted[1].nombre;
+  }
+};
+
+/* ── EVENTOS ── */
+const init=()=>{
+  document.getElementById('fi').addEventListener('change',e=>{
+    const f=e.target.files?.[0];
+    if(f)handleFile(f);
+    e.target.value='';
+  });
+
+  const dz=document.getElementById('dz');
+  ['dragenter','dragover','dragleave','drop'].forEach(ev=>
+    dz.addEventListener(ev,e=>{e.preventDefault();e.stopPropagation();}));
+  dz.addEventListener('dragover',()=>dz.classList.add('ov'));
+  dz.addEventListener('dragleave',()=>dz.classList.remove('ov'));
+  dz.addEventListener('drop',e=>{
+    dz.classList.remove('ov');
+    const f=e.dataTransfer?.files?.[0];
+    if(f)handleFile(f);
+  });
+  dz.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();document.getElementById('fi').click();}
+  });
+
+  fadeIn();
+};
+
+document.readyState==='loading'
+  ?document.addEventListener('DOMContentLoaded',init)
+  :init();
+
+})();
+</script>
+</body>
+</html>
