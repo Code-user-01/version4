@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>DataPro · Análisis de Consumos</title>
+    <title>DataFlow Pro · Análisis de Consumos 2025</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -952,6 +952,13 @@
         color: var(--t1);
         margin-top: 1px;
       }
+      .vm-ref {
+        font-size: 0.6rem;
+        color: var(--mu);
+        margin-top: 2px;
+        font-style: italic;
+        opacity: 0.8;
+      }
       .vp {
         font-family: var(--fm);
         font-size: 0.9rem;
@@ -1135,8 +1142,10 @@
       }
 
       /* ══════════════════════════════════════════════
-   RESPONSIVE
+   RESPONSIVE — MOBILE FIRST
 ══════════════════════════════════════════════ */
+
+      /* ── 640px+ : tablet pequeña ── */
       @media (min-width: 640px) {
         .kg {
           grid-template-columns: repeat(3, 1fr);
@@ -1148,6 +1157,8 @@
           grid-template-columns: repeat(2, 1fr);
         }
       }
+
+      /* ── 900px+ : tablet/desktop ── */
       @media (min-width: 900px) {
         #main {
           padding-left: 28px;
@@ -1190,6 +1201,293 @@
         }
         .cc {
           padding: 22px;
+        }
+      }
+
+      /* ══════════════════════════════════════════════
+   MOBILE FULL (<640px)
+   Objetivo: todo legible, nada amontonado,
+   sin overflow horizontal
+══════════════════════════════════════════════ */
+      @media (max-width: 639px) {
+        /* ── HEADER: una sola fila compacta ── */
+        #hdr {
+          padding: 0 12px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+        }
+        .hi {
+          flex-wrap: nowrap;
+          height: 100%;
+          gap: 8px;
+        }
+        .brand-sub {
+          display: none;
+        }
+        .brand-name {
+          font-size: 1rem;
+        }
+        .brand-logo {
+          width: 30px;
+          height: 30px;
+          font-size: 14px;
+        }
+        .status-pill {
+          display: none;
+        }
+
+        /* Botones header: compactos, sin texto largo */
+        .hdr-r {
+          gap: 6px;
+          flex-wrap: nowrap;
+        }
+        .btn-up {
+          padding: 6px 10px;
+          font-size: 0.72rem;
+          gap: 4px;
+        }
+        .btn-pdf.show {
+          padding: 6px 8px;
+          font-size: 0.72rem;
+          gap: 3px;
+          /* Solo mostrar el ícono en pantallas muy pequeñas */
+        }
+        /* En < 400px esconder texto del botón PDF, solo ícono */
+        @media (max-width: 400px) {
+          .btn-pdf.show .btn-pdf-txt {
+            display: none;
+          }
+        }
+
+        /* ── TABS NAV: scroll horizontal suave ── */
+        #tabs-nav {
+          top: 48px;
+          border-bottom: 1px solid var(--border);
+        }
+        .tabs-inner {
+          padding: 0;
+          gap: 0;
+          /* Forzar que quepan los 4 tabs igualados */
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          overflow: visible;
+        }
+        .tab-btn {
+          padding: 6px 4px 8px;
+          font-size: 0.6rem;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          border-bottom: 2px solid transparent;
+          border-right: none;
+          white-space: normal;
+          text-align: center;
+          line-height: 1.2;
+        }
+        .tab-btn.active {
+          background: rgba(79, 126, 247, 0.05);
+          border-bottom-color: var(--a1);
+        }
+        .tab-btn .ti {
+          font-size: 16px;
+          line-height: 1;
+        }
+
+        /* ── MAIN padding ── */
+        #main {
+          padding: calc(48px + 54px + 14px) 12px 40px !important;
+        }
+
+        /* ── KPIs: 2 columnas bien proporcionadas ── */
+        .kg {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+        .kc {
+          padding: 14px 12px;
+        }
+        .k-ico {
+          width: 34px;
+          height: 34px;
+          font-size: 15px;
+          margin-bottom: 8px;
+        }
+        .k-lb {
+          font-size: 0.6rem;
+        }
+        .k-v {
+          font-size: 0.82rem;
+        }
+
+        /* ── Variación mensual: 2 cols ── */
+        .vg {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          margin-bottom: 18px;
+        }
+        .vc {
+          padding: 10px 12px;
+        }
+        .vm-n {
+          font-size: 0.6rem;
+        }
+        .vm-v {
+          font-size: 0.72rem;
+        }
+        .vp {
+          font-size: 0.8rem;
+        }
+
+        /* ── Charts: altura reducida en mobile ── */
+        .h280 {
+          height: 220px;
+        }
+        .h320 {
+          height: 240px;
+        }
+        .h360 {
+          height: 260px;
+        }
+        .h400 {
+          height: 280px;
+        }
+        .h250 {
+          height: 200px;
+        }
+
+        /* ── Cards: padding reducido ── */
+        .cc {
+          padding: 14px 12px;
+        }
+        .cc-t {
+          font-size: 0.86rem;
+        }
+        .cch {
+          margin-bottom: 10px;
+        }
+
+        /* ── Tabla: scroll horizontal ── */
+        .tw {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          border-radius: var(--r1);
+        }
+        .tbl {
+          font-size: 0.72rem;
+          min-width: 420px;
+        }
+        .tbl td,
+        .tbl th {
+          padding: 5px 8px;
+        }
+
+        /* ── Section headers ── */
+        .sh {
+          margin-bottom: 10px;
+        }
+        .sh-t {
+          font-size: 1.1rem;
+        }
+        .sh-s {
+          font-size: 0.72rem;
+        }
+
+        /* ── Dividers ── */
+        .dv {
+          margin: 16px 0;
+        }
+
+        /* ── Grids: siempre 1 col en mobile ── */
+        .g2,
+        .g3 {
+          grid-template-columns: 1fr;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+
+        /* ── File bar ── */
+        .fbar {
+          padding: 10px 12px;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+        .fbd {
+          min-width: 0;
+        }
+        .fbn {
+          font-size: 0.7rem;
+        }
+        .fbm {
+          font-size: 0.62rem;
+        }
+        .fbg {
+          font-size: 0.62rem;
+          padding: 2px 8px;
+        }
+
+        /* ── Selector ── */
+        .sw {
+          max-width: 100%;
+        }
+        .sel {
+          font-size: 0.8rem;
+          padding: 8px 28px 8px 10px;
+        }
+
+        /* ── Welcome screen ── */
+        .wt {
+          font-size: 2rem;
+        }
+        .ws {
+          font-size: 0.9rem;
+        }
+        .dz {
+          padding: 26px 18px;
+        }
+        .w-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+        .wf {
+          padding: 10px;
+        }
+        .wft {
+          font-size: 0.74rem;
+        }
+        .wfs {
+          font-size: 0.63rem;
+        }
+
+        /* ── Ficha header ── */
+        .ficha-name {
+          font-size: 1rem;
+        }
+        .ficha-code {
+          font-size: 0.66rem;
+        }
+
+        /* ── Comparativa selectors ── */
+        .comp-row {
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .comp-dot {
+          width: 10px;
+          height: 10px;
+        }
+
+        /* ── Toasts: ancho completo ── */
+        #tc {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+        }
+        .toast {
+          min-width: 0;
+          max-width: 100%;
+          font-size: 0.74rem;
         }
       }
 
@@ -1367,8 +1665,8 @@
         <div class="brand">
           <div class="brand-logo">📊</div>
           <div>
-            <div class="brand-name"><span>Data</span> Pro</div>
-            <div class="brand-sub">Análisis de Consumos</div>
+            <div class="brand-name"><span>DataFlow</span> Pro</div>
+            <div class="brand-sub">Análisis de Consumos 2025</div>
           </div>
         </div>
         <div class="hdr-r">
@@ -1434,7 +1732,7 @@
     <main id="main">
       <!-- ─── WELCOME ─── -->
       <div id="wel">
-        <div class="wt">Análisis de<em> Consumos </em></div>
+        <div class="wt">Análisis de<br />Consumos <em>2025</em></div>
         <p class="ws">
           Carga el archivo Excel para obtener análisis completo insumo por
           insumo, evolución mensual y comparativas. Todo en pesos colombianos.
@@ -1644,7 +1942,7 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Reporte Análisis de Consumos · Generado el
+          DataFlow Pro · Reporte Análisis de Consumos 2025 · Generado el
           <span id="fecha-r"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -1675,7 +1973,7 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Análisis Mensual · Generado el
+          DataFlow Pro · Análisis Mensual · Generado el
           <span class="fecha-r2"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -1706,7 +2004,7 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Ficha de Insumo · Generado el
+          DataFlow Pro · Ficha de Insumo · Generado el
           <span class="fecha-r2"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -1755,7 +2053,7 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Comparativa de Insumos · Generado el
+          DataFlow Pro · Comparativa de Insumos · Generado el
           <span class="fecha-r2"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -2246,13 +2544,20 @@
 
         const renderVarMensual = () => {
           document.getElementById("vg").innerHTML = S.variaciones
-            .map(({ mes, costo, pct: p }) => {
+            .map(({ mes, costo, pct: p }, i) => {
               const hp = p !== null,
                 up = hp && p >= 0;
-              const ps = hp ? `${up ? "+" : ""}${p.toFixed(1)}%` : "BASE";
+              const ps = hp ? `${up ? "+" : ""}${p.toFixed(1)}%` : "INICIO";
               const cl = !hp ? "ne" : up ? "up" : "dn";
+              // Mes anterior para mostrar la referencia
+              const mesPrev = i > 0 ? S.meses[i - 1] : null;
+              const refTxt = mesPrev ? `vs ${mesPrev}` : "Mes base";
               return `<div class="vc fi">
-      <div><div class="vm-n">${mes}</div><div class="vm-v">${cop(costo)}</div></div>
+      <div>
+        <div class="vm-n">${mes}</div>
+        <div class="vm-v">${cop(costo)}</div>
+        <div class="vm-ref">${refTxt}</div>
+      </div>
       <div class="vp ${cl}">${ps}</div>
     </div>`;
             })
@@ -3460,7 +3765,7 @@
             `${O}body${C}`,
             `${O}div class="header"${C}`,
             `${O}div class="h-title"${C}${mat.nombre}${S}div${C}`,
-            `${O}div class="h-sub"${C}Código: ${mat.codigo} · Ficha de Insumo · Análisis de Consumos · Pesos Colombianos (COP)${S}div${C}`,
+            `${O}div class="h-sub"${C}Código: ${mat.codigo} · Ficha de Insumo · Análisis de Consumos 2025 · Pesos Colombianos (COP)${S}div${C}`,
             `${S}div${C}`,
             `${O}div class="kg"${C}${kpisHTML}${S}div${C}`,
             `${O}div class="cc"${C}`,
@@ -3477,7 +3782,7 @@
             `${O}td style="text-align:right"${C}100%${S}td${C}`,
             `${O}td style="text-align:right"${C}${pctA}${S}td${C}`,
             `${O}td${C}—${S}td${C}${S}tr${C}${S}tfoot${C}${S}table${C}${S}div${C}`,
-            `${O}div class="footer"${C}DataPro · Generado el ${fechaStr2}${S}div${C}`,
+            `${O}div class="footer"${C}DataFlow Pro · Generado el ${fechaStr2}${S}div${C}`,
             `${O}script${C}window.onload=()=>setTimeout(()=>window.print(),400);${S}script${C}`,
             `${S}body${C}${S}html${C}`,
           ].join("\n");
@@ -3808,11 +4113,11 @@
               pdf.setTextColor(255, 255, 255);
               pdf.setFont("helvetica", "bold");
               pdf.setFontSize(7.5);
-              pdf.text("DataPro", marginX + 3, marginY + 4);
+              pdf.text("DataFlow Pro", marginX + 3, marginY + 4);
               pdf.setFont("helvetica", "normal");
               pdf.setFontSize(6.5);
               pdf.text(
-                tabName + " · Análisis de Consumos ",
+                tabName + " · Análisis de Consumos 2025",
                 marginX + 3,
                 marginY + 8,
               );
@@ -3864,7 +4169,7 @@
               pdf.setFont("helvetica", "normal");
               pdf.setFontSize(6);
               pdf.text(
-                "DataPro · Reporte Análisis de Consumos · Pesos Colombianos (COP)",
+                "DataFlow Pro · Reporte Análisis de Consumos 2025 · Pesos Colombianos (COP)",
                 pageW / 2,
                 footerY + 3.5,
                 { align: "center" },
@@ -3874,7 +4179,7 @@
             // Guardar PDF con nombre descriptivo
             const tabSlug = tabActivo.id.replace("tab-", "");
             pdf.save(
-              `DataPro-${tabSlug}-${new Date().toISOString().slice(0, 10)}.pdf`,
+              `DataFlow-Pro-${tabSlug}-${new Date().toISOString().slice(0, 10)}.pdf`,
             );
 
             toast("PDF generado correctamente", "ok");
@@ -3980,7 +4285,7 @@
               "ok",
             );
           } catch (err) {
-            console.error("[DataPro]", err);
+            console.error("[DataFlow Pro]", err);
             toast(`Error: ${err.message}`, "err");
             setStatus(false, "Error al cargar");
           } finally {
@@ -4069,6 +4374,26 @@
           });
 
           fadeIn();
+
+          // Ajustar tabs-nav top + main padding-top según altura real del header
+          const hdrEl = document.getElementById("hdr");
+          const tabsEl = document.getElementById("tabs-nav");
+          const mainEl = document.getElementById("main");
+          const syncLayout = () => {
+            const hh = hdrEl.offsetHeight;
+            tabsEl.style.top = hh + "px";
+            const th = tabsEl.classList.contains("show")
+              ? tabsEl.offsetHeight
+              : 0;
+            mainEl.style.paddingTop = `${hh + th + 14}px`;
+          };
+          if (window.ResizeObserver) {
+            const ro = new ResizeObserver(syncLayout);
+            ro.observe(hdrEl);
+            ro.observe(tabsEl);
+          }
+          window.addEventListener("resize", syncLayout);
+          syncLayout();
         };
 
         document.readyState === "loading"
