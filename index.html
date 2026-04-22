@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>DataFlow Pro · Análisis de Consumos 2025</title>
+    <title>DataPro · Análisis de Consumos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1665,8 +1665,8 @@
         <div class="brand">
           <div class="brand-logo">📊</div>
           <div>
-            <div class="brand-name"><span>DataFlow</span> Pro</div>
-            <div class="brand-sub">Análisis de Consumos 2025</div>
+            <div class="brand-name"><span>Data</span> Pro</div>
+            <div class="brand-sub">Análisis de Consumos</div>
           </div>
         </div>
         <div class="hdr-r">
@@ -1732,7 +1732,7 @@
     <main id="main">
       <!-- ─── WELCOME ─── -->
       <div id="wel">
-        <div class="wt">Análisis de<br />Consumos <em>2025</em></div>
+        <div class="wt">Análisis de<em> Consumos </em></div>
         <p class="ws">
           Carga el archivo Excel para obtener análisis completo insumo por
           insumo, evolución mensual y comparativas. Todo en pesos colombianos.
@@ -1942,7 +1942,7 @@
         </div>
 
         <div class="print-footer">
-          DataFlow Pro · Reporte Análisis de Consumos 2025 · Generado el
+          DataPro · Reporte Análisis de Consumos · Generado el
           <span id="fecha-r"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -1973,7 +1973,7 @@
         </div>
 
         <div class="print-footer">
-          DataFlow Pro · Análisis Mensual · Generado el
+          DataPro · Análisis Mensual · Generado el
           <span class="fecha-r2"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -2004,7 +2004,7 @@
         </div>
 
         <div class="print-footer">
-          DataFlow Pro · Ficha de Insumo · Generado el
+          DataPro · Ficha de Insumo · Generado el
           <span class="fecha-r2"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -2053,7 +2053,7 @@
         </div>
 
         <div class="print-footer">
-          DataFlow Pro · Comparativa de Insumos · Generado el
+          DataPro · Comparativa de Insumos · Generado el
           <span class="fecha-r2"></span> · Pesos Colombianos (COP)
         </div>
       </div>
@@ -3765,7 +3765,7 @@
             `${O}body${C}`,
             `${O}div class="header"${C}`,
             `${O}div class="h-title"${C}${mat.nombre}${S}div${C}`,
-            `${O}div class="h-sub"${C}Código: ${mat.codigo} · Ficha de Insumo · Análisis de Consumos 2025 · Pesos Colombianos (COP)${S}div${C}`,
+            `${O}div class="h-sub"${C}Código: ${mat.codigo} · Ficha de Insumo · Análisis de Consumos · Pesos Colombianos (COP)${S}div${C}`,
             `${S}div${C}`,
             `${O}div class="kg"${C}${kpisHTML}${S}div${C}`,
             `${O}div class="cc"${C}`,
@@ -3782,7 +3782,7 @@
             `${O}td style="text-align:right"${C}100%${S}td${C}`,
             `${O}td style="text-align:right"${C}${pctA}${S}td${C}`,
             `${O}td${C}—${S}td${C}${S}tr${C}${S}tfoot${C}${S}table${C}${S}div${C}`,
-            `${O}div class="footer"${C}DataFlow Pro · Generado el ${fechaStr2}${S}div${C}`,
+            `${O}div class="footer"${C}DataPro · Generado el ${fechaStr2}${S}div${C}`,
             `${O}script${C}window.onload=()=>setTimeout(()=>window.print(),400);${S}script${C}`,
             `${S}body${C}${S}html${C}`,
           ].join("\n");
@@ -4113,11 +4113,11 @@
               pdf.setTextColor(255, 255, 255);
               pdf.setFont("helvetica", "bold");
               pdf.setFontSize(7.5);
-              pdf.text("DataFlow Pro", marginX + 3, marginY + 4);
+              pdf.text("DataPro", marginX + 3, marginY + 4);
               pdf.setFont("helvetica", "normal");
               pdf.setFontSize(6.5);
               pdf.text(
-                tabName + " · Análisis de Consumos 2025",
+                tabName + " · Análisis de Consumos",
                 marginX + 3,
                 marginY + 8,
               );
@@ -4169,7 +4169,7 @@
               pdf.setFont("helvetica", "normal");
               pdf.setFontSize(6);
               pdf.text(
-                "DataFlow Pro · Reporte Análisis de Consumos 2025 · Pesos Colombianos (COP)",
+                "DataPro · Reporte Análisis de Consumos · Pesos Colombianos (COP)",
                 pageW / 2,
                 footerY + 3.5,
                 { align: "center" },
@@ -4179,7 +4179,7 @@
             // Guardar PDF con nombre descriptivo
             const tabSlug = tabActivo.id.replace("tab-", "");
             pdf.save(
-              `DataFlow-Pro-${tabSlug}-${new Date().toISOString().slice(0, 10)}.pdf`,
+              `Data-Pro-${tabSlug}-${new Date().toISOString().slice(0, 10)}.pdf`,
             );
 
             toast("PDF generado correctamente", "ok");
@@ -4285,7 +4285,7 @@
               "ok",
             );
           } catch (err) {
-            console.error("[DataFlow Pro]", err);
+            console.error("[DataPro]", err);
             toast(`Error: ${err.message}`, "err");
             setStatus(false, "Error al cargar");
           } finally {
