@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>DataPro · Análisis de Consumos</title>
+    <title>Jefferson Patiño · Supervisor de Línea · AVSA S.A.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,6 +12,7 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -228,6 +229,28 @@
       }
       .btn-pdf:hover {
         box-shadow: var(--sh-h);
+      }
+      .pdf-opt {
+        display: block;
+        width: 100%;
+        padding: 9px 16px;
+        background: transparent;
+        border: none;
+        font-family: var(--fh);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--t2);
+        text-align: left;
+        cursor: pointer;
+        transition: var(--tr);
+      }
+      .pdf-opt:hover {
+        background: rgba(79, 126, 247, 0.07);
+        color: var(--a1);
+      }
+      .pdf-opt.pdf-all {
+        color: var(--a1);
+        font-weight: 700;
       }
       .btn-sm {
         padding: 5px 12px;
@@ -765,14 +788,16 @@
         overflow-x: auto;
         border-radius: var(--r2);
       }
+      /* ══ TABLAS — orden visual completo ══ */
       .tbl {
         width: 100%;
         border-collapse: collapse;
         font-size: 0.78rem;
+        table-layout: auto;
       }
       .tbl th {
         background: var(--deep);
-        padding: 7px 12px;
+        padding: 8px 14px;
         text-align: left;
         font-size: 0.64rem;
         font-weight: 700;
@@ -782,18 +807,58 @@
         white-space: nowrap;
         position: sticky;
         top: 0;
+        /* Borde vertical entre columnas */
+        border-right: 1px solid rgba(79, 126, 247, 0.1);
+        border-bottom: 2px solid rgba(79, 126, 247, 0.12);
+      }
+      .tbl th:last-child {
+        border-right: none;
       }
       .tbl td {
-        padding: 7px 12px;
+        padding: 8px 14px;
         border-bottom: 1px solid rgba(79, 126, 247, 0.06);
+        border-right: 1px solid rgba(79, 126, 247, 0.06);
         color: var(--t1);
         vertical-align: middle;
       }
+      .tbl td:last-child {
+        border-right: none;
+      }
       .tbl tr:hover td {
-        background: rgba(79, 126, 247, 0.04);
+        background: rgba(79, 126, 247, 0.035);
       }
       .tbl tr:last-child td {
         border-bottom: none;
+      }
+      /* Columnas numéricas: ancho fijo para que no floten */
+      .tbl td.mo,
+      .tbl th.mo {
+        min-width: 110px;
+      }
+      .tbl td.tr,
+      .tbl th.tr {
+        text-align: right;
+        white-space: nowrap;
+        min-width: 100px;
+      }
+      /* Columna participación: ancho fijo */
+      .tbl td:has(.pb),
+      .tbl td:has(.pb-b) {
+        min-width: 120px;
+      }
+      /* tfoot */
+      .tbl tfoot td {
+        background: var(--deep);
+        font-weight: 700;
+        border-top: 2px solid rgba(79, 126, 247, 0.14);
+        border-right: 1px solid rgba(79, 126, 247, 0.1);
+      }
+      .tbl tfoot td:last-child {
+        border-right: none;
+      }
+      /* Zebra suave para filas pares */
+      .tbl tbody tr:nth-child(even) td {
+        background: rgba(79, 126, 247, 0.018);
       }
       .rn {
         display: inline-flex;
@@ -958,6 +1023,61 @@
         margin-top: 2px;
         font-style: italic;
         opacity: 0.8;
+      }
+
+      /* ── Listas dentro de cards de gráfica ── */
+      .trend-lista {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0;
+      }
+      .tl-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 10px;
+        gap: 6px;
+        border-bottom: 1px solid rgba(79, 126, 247, 0.06);
+        transition: background 0.15s;
+      }
+      .tl-row:hover {
+        background: rgba(79, 126, 247, 0.04);
+      }
+      .tl-mes {
+        font-size: 0.64rem;
+        font-weight: 700;
+        color: var(--t2);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .tl-val {
+        font-family: var(--fm);
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--t1);
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tl-var {
+        font-family: var(--fm);
+        font-size: 0.6rem;
+        font-weight: 600;
+        min-width: 38px;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tl-var.up {
+        color: var(--a4);
+      }
+      .tl-var.dn {
+        color: var(--da);
+      }
+      .tl-var.ne {
+        color: var(--mu);
+      }
+      /* Borde derecho para separar las 2 columnas */
+      .trend-lista .tl-row:nth-child(odd) {
+        border-right: 1px solid rgba(79, 126, 247, 0.07);
       }
       .vp {
         font-family: var(--fm);
@@ -1376,11 +1496,15 @@
         }
         .tbl {
           font-size: 0.72rem;
-          min-width: 420px;
+          min-width: 440px;
         }
         .tbl td,
         .tbl th {
-          padding: 5px 8px;
+          padding: 5px 9px;
+        }
+        .tbl td.tr,
+        .tbl th.tr {
+          min-width: 80px;
         }
 
         /* ── Section headers ── */
@@ -1631,6 +1755,12 @@
         .tbl th {
           padding: 4px 8px !important;
         }
+        .tbl th {
+          border-right: 1px solid rgba(79, 126, 247, 0.15) !important;
+        }
+        .tbl td {
+          border-right: 1px solid rgba(79, 126, 247, 0.08) !important;
+        }
 
         /* Page breaks inteligentes */
         .dv.pb {
@@ -1663,10 +1793,10 @@
     <header id="hdr">
       <div class="hi">
         <div class="brand">
-          <div class="brand-logo">📊</div>
+          <div class="brand-logo">🏭</div>
           <div>
-            <div class="brand-name"><span>Data</span> Pro</div>
-            <div class="brand-sub">Análisis de Consumos</div>
+            <div class="brand-name"><span>Jefferson</span> Patiño</div>
+            <div class="brand-sub">Supervisor de Línea · AVSA S.A.</div>
           </div>
         </div>
         <div class="hdr-r">
@@ -1674,9 +1804,66 @@
             <span class="status-dot" id="sd"></span>
             <span id="st">Sin datos</span>
           </div>
-          <button class="btn btn-pdf" id="btn-pdf" onclick="exportarPDF()">
-            🖨 Imprimir / PDF
-          </button>
+          <div
+            class="pdf-dropdown"
+            id="pdf-wrap"
+            style="position: relative; display: none"
+          >
+            <button
+              class="btn btn-pdf show"
+              id="btn-pdf"
+              onclick="togglePdfMenu()"
+            >
+              🖨 PDF ▾
+            </button>
+            <div
+              id="pdf-menu"
+              style="
+                display: none;
+                position: absolute;
+                top: calc(100% + 6px);
+                right: 0;
+                background: var(--card);
+                border-radius: var(--r2);
+                box-shadow: var(--sh-c);
+                min-width: 220px;
+                z-index: 300;
+                overflow: hidden;
+                border: 1px solid var(--border);
+              "
+            >
+              <div
+                style="
+                  padding: 7px 12px 5px;
+                  font-size: 0.62rem;
+                  font-weight: 700;
+                  color: var(--mu);
+                  text-transform: uppercase;
+                  letter-spacing: 0.06em;
+                "
+              >
+                Exportar PDF
+              </div>
+              <button class="pdf-opt" onclick="exportarPDF('resumen')">
+                📊 Resumen General
+              </button>
+              <button class="pdf-opt" onclick="exportarPDF('mensual')">
+                📅 Análisis Mensual
+              </button>
+              <button class="pdf-opt" onclick="exportarPDF('insumo')">
+                🔍 Ficha por Insumo
+              </button>
+              <button class="pdf-opt" onclick="exportarPDF('comparativa')">
+                📈 Comparativa
+              </button>
+              <div
+                style="height: 1px; background: var(--border); margin: 4px 0"
+              ></div>
+              <button class="pdf-opt pdf-all" onclick="exportarPDF('all')">
+                📄 Todas las secciones
+              </button>
+            </div>
+          </div>
           <button
             class="btn btn-up"
             onclick="document.getElementById('fi').click()"
@@ -1732,10 +1919,11 @@
     <main id="main">
       <!-- ─── WELCOME ─── -->
       <div id="wel">
-        <div class="wt">Análisis de<em> Consumos </em></div>
+        <div class="wt">Control de<em> Consumos</em></div>
         <p class="ws">
-          Carga el archivo Excel para obtener análisis completo insumo por
-          insumo, evolución mensual y comparativas. Todo en pesos colombianos.
+          <strong>Jefferson Stanly Patiño Cajamarca</strong>, Supervisor de
+          Línea — Plantas Procesos. Carga el reporte Excel para ver el análisis
+          completo por insumo, evolución mensual y comparativas.
         </p>
         <div
           class="dz"
@@ -1749,36 +1937,6 @@
           <div class="dz-s">o haz clic para seleccionar</div>
           <div class="dz-ext">
             <span class="ext">.xlsx</span><span class="ext">.xls</span>
-          </div>
-        </div>
-        <div class="w-grid">
-          <div class="wf">
-            <div class="wfi">📊</div>
-            <div>
-              <div class="wft">Resumen General</div>
-              <div class="wfs">KPIs, tendencias, variación</div>
-            </div>
-          </div>
-          <div class="wf">
-            <div class="wfi">📅</div>
-            <div>
-              <div class="wft">Por Mes</div>
-              <div class="wfs">Desglose de cada mes</div>
-            </div>
-          </div>
-          <div class="wf">
-            <div class="wfi">🔍</div>
-            <div>
-              <div class="wft">Por Insumo</div>
-              <div class="wfs">Ficha completa + PDF</div>
-            </div>
-          </div>
-          <div class="wf">
-            <div class="wfi">📈</div>
-            <div>
-              <div class="wft">Comparativa</div>
-              <div class="wfs">Hasta 3 insumos juntos</div>
-            </div>
           </div>
         </div>
       </div>
@@ -1801,9 +1959,7 @@
 
         <div class="sh fi d1">
           <div class="sh-t">Indicadores Clave</div>
-          <div class="sh-s">
-            Resumen financiero anual · Pesos Colombianos (COP)
-          </div>
+          <div class="sh-s">Resumen financiero anual ·</div>
         </div>
         <div class="kg" id="kg"></div>
 
@@ -1823,6 +1979,9 @@
               <span class="cc-b">Línea</span>
             </div>
             <div class="cw h280"><canvas id="ch-l"></canvas></div>
+            <!-- Lista mes / costo mensual -->
+            <div class="dv" style="margin: 12px 0 8px"></div>
+            <div id="lista-mensual" class="trend-lista"></div>
           </div>
           <div class="cc">
             <div class="cch">
@@ -1833,14 +1992,17 @@
               <span class="cc-b">Área</span>
             </div>
             <div class="cw h280"><canvas id="ch-a"></canvas></div>
+            <!-- Lista mes / costo acumulado -->
+            <div class="dv" style="margin: 12px 0 8px"></div>
+            <div id="lista-acumulado" class="trend-lista"></div>
           </div>
         </div>
 
         <div class="dv"></div>
 
         <div class="sh fi d1">
-          <div class="sh-t">Variación Mensual</div>
-          <div class="sh-s">Cambio porcentual y valor absoluto mes a mes</div>
+          <div class="sh-t">Costos y Variación Mensual</div>
+          <div class="sh-s">Costo total y cambio porcentual mes a mes</div>
         </div>
         <div class="vg fi d2" id="vg"></div>
 
@@ -1850,43 +2012,86 @@
           <div class="sh-t">Top 10 Materiales</div>
           <div class="sh-s">Por costo total acumulado en COP</div>
         </div>
-        <div class="g2 fi d2">
-          <div class="cc">
-            <div class="cch">
-              <div>
-                <div class="cc-t">Costos por Material</div>
-                <div class="cc-s">Top 10 acumulado anual</div>
-              </div>
-              <span class="cc-b">Barras</span>
+
+        <!-- Barras Top10 con tabla debajo -->
+        <div class="cc fi d2" style="margin-bottom: 16px">
+          <div class="cch">
+            <div>
+              <div class="cc-t">Costos por Material — Top 10</div>
+              <div class="cc-s">Participación anual visible en cada barra</div>
             </div>
-            <div class="cw h400"><canvas id="ch-b"></canvas></div>
+            <span class="cc-b">Barras</span>
           </div>
-          <div class="cc">
-            <div class="cch">
-              <div>
-                <div class="cc-t">Participación Anual</div>
-                <div class="cc-s">% del costo total por material</div>
-              </div>
-              <span class="cc-b">Pastel</span>
-            </div>
-            <div class="cw h400"><canvas id="ch-p"></canvas></div>
+          <div class="cw h400"><canvas id="ch-b"></canvas></div>
+          <div class="dv" style="margin: 12px 0 8px"></div>
+          <div class="tw">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Material</th>
+                  <th class="tr">Costo Anual COP</th>
+                  <th class="tr">Participación</th>
+                </tr>
+              </thead>
+              <tbody id="tb-barras"></tbody>
+            </table>
           </div>
         </div>
 
+        <!-- Pastel Top10 + tabla leyenda abajo -->
+        <div class="cc fi d2" style="margin-bottom: 16px">
+          <div class="cch">
+            <div>
+              <div class="cc-t">Participación Anual — Top 10</div>
+              <div class="cc-s">% en cada sector · leyenda con costo abajo</div>
+            </div>
+            <span class="cc-b">Pastel</span>
+          </div>
+          <div class="cw h320"><canvas id="ch-p"></canvas></div>
+          <div class="dv" style="margin: 12px 0 8px"></div>
+          <div class="tw">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th class="tr">Participación</th>
+                  <th class="tr">Costo Anual COP</th>
+                </tr>
+              </thead>
+              <tbody id="tb-p"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pastel TODOS + tabla leyenda abajo -->
         <div class="cc fi d3" style="margin-bottom: 16px">
           <div class="cch">
             <div>
               <div class="cc-t">Participación Anual · Todos los Materiales</div>
               <div class="cc-s">
-                % de costo de cada insumo sobre el total anual ·
-                <span id="lbl-todos-n">—</span> materiales
+                <span id="lbl-todos-n">—</span> materiales · % en cada sector
               </div>
             </div>
             <span class="cc-b">Pastel completo</span>
           </div>
-          <div class="cw h400"><canvas id="ch-todos"></canvas></div>
+          <div class="cw h360"><canvas id="ch-todos"></canvas></div>
+          <div class="dv" style="margin: 12px 0 8px"></div>
+          <div class="tw">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th class="tr">Participación</th>
+                  <th class="tr">Costo Anual COP</th>
+                </tr>
+              </thead>
+              <tbody id="tb-todos"></tbody>
+            </table>
+          </div>
         </div>
 
+        <!-- Ranking completo -->
         <div class="cc fi d3" style="margin-bottom: 24px">
           <div class="cch">
             <div>
@@ -1912,38 +2117,9 @@
           </div>
         </div>
 
-        <div class="dv pb"></div>
-
-        <div class="sh fi d1">
-          <div class="sh-t">Análisis Estadístico</div>
-          <div class="sh-s">Distribución y correlación de variables</div>
-        </div>
-        <div class="g2 fi d2">
-          <div class="cc">
-            <div class="cch">
-              <div>
-                <div class="cc-t">Histograma de Costos</div>
-                <div class="cc-s">Distribución por rango de costo anual</div>
-              </div>
-              <span class="cc-b">Histograma</span>
-            </div>
-            <div class="cw h250"><canvas id="ch-hist"></canvas></div>
-          </div>
-          <div class="cc">
-            <div class="cch">
-              <div>
-                <div class="cc-t">Cantidad vs Costo</div>
-                <div class="cc-s">Correlación entre variables por material</div>
-              </div>
-              <span class="cc-b">Dispersión</span>
-            </div>
-            <div class="cw h250"><canvas id="ch-disp"></canvas></div>
-          </div>
-        </div>
-
         <div class="print-footer">
-          DataPro · Reporte Análisis de Consumos · Generado el
-          <span id="fecha-r"></span> · Pesos Colombianos (COP)
+          Jefferson Stanly Patiño Cajamarca · Supervisor de Línea Plantas
+          Procesos · AVSA S.A. · Generado el <span id="fecha-r"></span>
         </div>
       </div>
 
@@ -1973,8 +2149,8 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Análisis Mensual · Generado el
-          <span class="fecha-r2"></span> · Pesos Colombianos (COP)
+          Jefferson Stanly Patiño Cajamarca · Análisis Mensual · AVSA S.A. ·
+          Generado el <span class="fecha-r2"></span>
         </div>
       </div>
 
@@ -2004,8 +2180,8 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Ficha de Insumo · Generado el
-          <span class="fecha-r2"></span> · Pesos Colombianos (COP)
+          Jefferson Stanly Patiño Cajamarca · Ficha de Insumo · AVSA S.A. ·
+          Generado el <span class="fecha-r2"></span>
         </div>
       </div>
 
@@ -2053,8 +2229,8 @@
         </div>
 
         <div class="print-footer">
-          DataPro · Comparativa de Insumos · Generado el
-          <span class="fecha-r2"></span> · Pesos Colombianos (COP)
+          Jefferson Stanly Patiño Cajamarca · Comparativa de Insumos · AVSA S.A.
+          · Generado el <span class="fecha-r2"></span>
         </div>
       </div>
     </main>
@@ -2243,9 +2419,39 @@
               },
             },
             tooltip: tipCOP,
+            // Desactivado por defecto — se activa explícitamente en cada pastel
+            datalabels: { display: false },
           },
           ...ex,
         });
+
+        // Config datalabels para pasteles — % dentro de cada sector
+        const dlPie = (totalFn, minPct = 2.5) => ({
+          display: (ctx) => {
+            const v = ctx.dataset.data[ctx.dataIndex];
+            const t = typeof totalFn === "function" ? totalFn() : totalFn;
+            return t > 0 && (v / t) * 100 >= minPct;
+          },
+          formatter: (v) => {
+            const t = typeof totalFn === "function" ? totalFn() : totalFn;
+            return t > 0 ? `${((v / t) * 100).toFixed(1)}%` : "";
+          },
+          font: {
+            size: 10,
+            weight: "700",
+            family: "'JetBrains Mono',monospace",
+          },
+          color: "#fff",
+          textStrokeColor: "rgba(0,0,0,.45)",
+          textStrokeWidth: 2.5,
+          anchor: "center",
+          align: "center",
+        });
+
+        // Registrar plugin datalabels (v2 requiere registro explícito)
+        try {
+          Chart.register(ChartDataLabels);
+        } catch (e) {}
 
         /* ══════════════════════════════════════════
    PARSEO EXCEL
@@ -2543,13 +2749,13 @@
         };
 
         const renderVarMensual = () => {
+          // ── Cards de variación ──
           document.getElementById("vg").innerHTML = S.variaciones
             .map(({ mes, costo, pct: p }, i) => {
               const hp = p !== null,
                 up = hp && p >= 0;
               const ps = hp ? `${up ? "+" : ""}${p.toFixed(1)}%` : "INICIO";
               const cl = !hp ? "ne" : up ? "up" : "dn";
-              // Mes anterior para mostrar la referencia
               const mesPrev = i > 0 ? S.meses[i - 1] : null;
               const refTxt = mesPrev ? `vs ${mesPrev}` : "Mes base";
               return `<div class="vc fi">
@@ -2604,7 +2810,7 @@
             .join("");
         };
 
-        /* ── Gráfica Línea ── */
+        /* ── Gráfica Línea — labels de precio en cada punto ── */
         const gLinea = () => {
           killChart("l");
           const ctx = document.getElementById("ch-l").getContext("2d");
@@ -2615,7 +2821,7 @@
           charts["l"] = new Chart(ctx, {
             type: "line",
             data: {
-              labels: S.meses,
+              labels: S.meses.map((m) => m.substring(0, 3)),
               datasets: [
                 {
                   label: "Costo mensual",
@@ -2625,19 +2831,46 @@
                   borderWidth: 2.5,
                   fill: true,
                   tension: 0.4,
-                  pointRadius: 6,
+                  pointRadius: 5,
                   pointBackgroundColor: "#4f7ef7",
                   pointBorderColor: "#fff",
                   pointBorderWidth: 2,
-                  pointHoverRadius: 9,
+                  pointHoverRadius: 8,
+                  datalabels: {
+                    align: "top",
+                    anchor: "end",
+                    offset: 4,
+                    formatter: (v) => {
+                      if (!v) return "";
+                      if (v >= 1e6)
+                        return `$${(v / 1e6).toFixed(1).replace(".", ",")}M`;
+                      if (v >= 1e3)
+                        return `$${Math.round(v / 1e3).toLocaleString("es-CO")}K`;
+                      return cop(v);
+                    },
+                    font: {
+                      family: "'JetBrains Mono',monospace",
+                      size: 8,
+                      weight: "600",
+                    },
+                    color: "#4f7ef7",
+                    backgroundColor: "rgba(240,244,251,.85)",
+                    borderRadius: 3,
+                    padding: { top: 2, bottom: 2, left: 3, right: 3 },
+                  },
                 },
               ],
             },
-            options: { ...bOpts(), scales: { y: yAx, x: xAx } },
+            options: {
+              ...bOpts(),
+              layout: { padding: { top: 30, bottom: 4 } },
+              scales: { y: { ...yAx, grace: "10%" }, x: xAx },
+              plugins: { ...bOpts().plugins, datalabels: { display: true } },
+            },
           });
         };
 
-        /* ── Gráfica Área ── */
+        /* ── Gráfica Área — labels acumulado en cada punto ── */
         const gArea = () => {
           killChart("a");
           const ctx = document.getElementById("ch-a").getContext("2d");
@@ -2652,7 +2885,7 @@
           charts["a"] = new Chart(ctx, {
             type: "line",
             data: {
-              labels: S.meses,
+              labels: S.meses.map((m) => m.substring(0, 3)),
               datasets: [
                 {
                   label: "Costo acumulado",
@@ -2666,59 +2899,50 @@
                   pointBackgroundColor: "#7c3aed",
                   pointBorderColor: "#fff",
                   pointBorderWidth: 2,
+                  datalabels: {
+                    align: "top",
+                    anchor: "end",
+                    offset: 4,
+                    formatter: (v) => {
+                      if (!v) return "";
+                      if (v >= 1e9)
+                        return `$${(v / 1e9).toFixed(2).replace(".", ",")}B`;
+                      if (v >= 1e6)
+                        return `$${(v / 1e6).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}M`;
+                      return `$${Math.round(v / 1e3).toLocaleString("es-CO")}K`;
+                    },
+                    font: {
+                      family: "'JetBrains Mono',monospace",
+                      size: 8,
+                      weight: "600",
+                    },
+                    color: "#7c3aed",
+                    backgroundColor: "rgba(240,244,251,.85)",
+                    borderRadius: 3,
+                    padding: { top: 2, bottom: 2, left: 3, right: 3 },
+                  },
                 },
               ],
             },
-            options: { ...bOpts(), scales: { y: yAx, x: xAx } },
+            options: {
+              ...bOpts(),
+              layout: { padding: { top: 30, bottom: 4 } },
+              scales: { y: { ...yAx, grace: "10%" }, x: xAx },
+              plugins: { ...bOpts().plugins, datalabels: { display: true } },
+            },
           });
         };
 
-        /* ── Top 10 Barras Horizontales ── */
+        /* ── Top 10 Barras + tabla abajo ── */
         const gBarras = () => {
           killChart("b");
           const ctx = document.getElementById("ch-b").getContext("2d");
           const lbls = S.top10.map((m) =>
-            m.nombre.length > 35 ? m.nombre.substring(0, 35) + "…" : m.nombre,
+            m.nombre.length > 32 ? m.nombre.substring(0, 32) + "…" : m.nombre,
           );
           const data = S.top10.map((m) =>
             Object.values(m.costos).reduce((a, b) => a + b, 0),
           );
-          // Tooltip personalizado para barras horizontales:
-          // indexAxis:'y' → el valor numérico está en parsed.x, no en parsed.y
-          const tipBarH = {
-            backgroundColor: "#f0f4fb",
-            titleColor: "#111827",
-            bodyColor: "#374151",
-            borderColor: "rgba(79,126,247,.2)",
-            borderWidth: 1,
-            padding: 12,
-            cornerRadius: 9,
-            titleFont: {
-              family: "'Outfit',sans-serif",
-              weight: "700",
-              size: 12,
-            },
-            bodyFont: { family: "'Plus Jakarta Sans',sans-serif", size: 11 },
-            callbacks: {
-              title(items) {
-                // Nombre completo del material en el título del tooltip
-                const idx = items[0].dataIndex;
-                return S.top10[idx]?.nombre || items[0].label;
-              },
-              label(ctx) {
-                // Valor en el eje X (costo COP)
-                return ` Costo anual: ${cop(ctx.parsed.x)}`;
-              },
-              afterLabel(ctx) {
-                const v = ctx.parsed.x;
-                const p =
-                  S.kpis.total > 0
-                    ? ((v / S.kpis.total) * 100).toFixed(1)
-                    : "0";
-                return ` Participación: ${p}% del total anual`;
-              },
-            },
-          };
           charts["b"] = new Chart(ctx, {
             type: "bar",
             data: {
@@ -2750,20 +2974,69 @@
                 },
               },
               plugins: {
-                ...bOpts().plugins,
                 legend: { display: false },
-                tooltip: tipBarH,
+                tooltip: {
+                  backgroundColor: "#f0f4fb",
+                  titleColor: "#111827",
+                  bodyColor: "#374151",
+                  borderColor: "rgba(79,126,247,.2)",
+                  borderWidth: 1,
+                  padding: 12,
+                  cornerRadius: 9,
+                  titleFont: {
+                    family: "'Outfit',sans-serif",
+                    weight: "700",
+                    size: 12,
+                  },
+                  bodyFont: {
+                    family: "'Plus Jakarta Sans',sans-serif",
+                    size: 11,
+                  },
+                  callbacks: {
+                    title(items) {
+                      const idx = items[0].dataIndex;
+                      return S.top10[idx]?.nombre || items[0].label;
+                    },
+                    label(c) {
+                      return ` Costo anual: ${cop(c.parsed.x)}`;
+                    },
+                    afterLabel(c) {
+                      const p =
+                        S.kpis.total > 0
+                          ? ((c.parsed.x / S.kpis.total) * 100).toFixed(1)
+                          : "0";
+                      return ` Participación: ${p}%`;
+                    },
+                  },
+                },
               },
             },
           });
+          // Tabla debajo de la gráfica
+          document.getElementById("tb-barras").innerHTML = S.top10
+            .map((m, i) => {
+              const cost = data[i];
+              const p =
+                S.kpis.total > 0
+                  ? ((cost / S.kpis.total) * 100).toFixed(1)
+                  : "0";
+              return `<tr>
+      <td><span class="rn ${i < 3 ? "tp" : ""}">${i + 1}</span></td>
+      <td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;
+        background:${PALETA[i]};margin-right:6px;vertical-align:middle"></span>${m.nombre}</td>
+      <td class="tr mo bold">${cop(cost)}</td>
+      <td class="tr mo" style="color:${PALETA[i]};font-weight:700">${p}%</td>
+    </tr>`;
+            })
+            .join("");
         };
 
-        /* ── Pastel ── */
+        /* ── Pastel Top10 + tabla leyenda abajo ── */
         const gPastel = () => {
           killChart("p");
           const ctx = document.getElementById("ch-p").getContext("2d");
           const lbls = S.top10.map((m) =>
-            m.nombre.length > 24 ? m.nombre.substring(0, 24) + "…" : m.nombre,
+            m.nombre.length > 22 ? m.nombre.substring(0, 22) + "…" : m.nombre,
           );
           const data = S.top10.map((m) =>
             Object.values(m.costos).reduce((a, b) => a + b, 0),
@@ -2784,38 +3057,44 @@
             },
             options: {
               ...bOpts(),
-              cutout: "55%",
+              cutout: "52%",
               plugins: {
-                ...bOpts().plugins,
-                legend: {
-                  position: "right",
-                  labels: {
-                    font: { family: "'Plus Jakarta Sans',sans-serif", size: 9 },
-                    color: "#374151",
-                    padding: 7,
-                    boxWidth: 9,
-                    boxHeight: 9,
-                  },
-                },
+                legend: { display: false },
                 tooltip: {
                   ...tipCOP,
                   callbacks: {
-                    label(ctx) {
-                      const p = ((ctx.parsed / S.kpis.total) * 100).toFixed(1);
-                      return ` ${cop(ctx.parsed)}  (${p}%)`;
+                    label(c) {
+                      const p = ((c.parsed / S.kpis.total) * 100).toFixed(1);
+                      return ` ${cop(c.parsed)}  (${p}%)`;
                     },
                   },
                 },
+                datalabels: dlPie(() => S.kpis.total, 2),
               },
             },
           });
+          // Tabla leyenda debajo
+          document.getElementById("tb-p").innerHTML = S.top10
+            .map((m, i) => {
+              const cost = data[i];
+              const p =
+                S.kpis.total > 0
+                  ? ((cost / S.kpis.total) * 100).toFixed(1)
+                  : "0";
+              return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+        background:${PALETA[i]};margin-right:6px;vertical-align:middle"></span>${m.nombre}</td>
+      <td class="tr mo bold" style="color:${PALETA[i]}">${p}%</td>
+      <td class="tr mo bold">${cop(cost)}</td>
+    </tr>`;
+            })
+            .join("");
         };
 
-        /* ── Pastel TODOS los materiales ── */
+        /* ── Pastel TODOS los materiales + tabla leyenda abajo ── */
         const gPastelTodos = () => {
           killChart("todos");
           const ctx = document.getElementById("ch-todos").getContext("2d");
-          // Ordenar todos los materiales por costo descendente
           const todos = [...S.materiales]
             .map((m) => ({
               nombre: m.nombre,
@@ -2823,23 +3102,18 @@
             }))
             .filter((m) => m.costo > 0)
             .sort((a, b) => b.costo - a.costo);
-
           document.getElementById("lbl-todos-n").textContent = todos.length;
-
-          // Para el pastel: top 14 individuales + "Otros" agrupados
           const TOP = 14;
           const principales = todos.slice(0, TOP);
           const otros = todos.slice(TOP);
           const otrosCosto = otros.reduce((a, m) => a + m.costo, 0);
-
           const labels = principales.map((m) =>
-            m.nombre.length > 30 ? m.nombre.substring(0, 30) + "…" : m.nombre,
+            m.nombre.length > 28 ? m.nombre.substring(0, 28) + "…" : m.nombre,
           );
           const data = principales.map((m) => m.costo);
-          const colores = [...PALETA, ...PALETA, ...PALETA].slice(0, TOP);
-
+          const colores = [...PALETA, ...PALETA].slice(0, TOP);
           if (otrosCosto > 0) {
-            labels.push(`Otros (${otros.length} materiales)`);
+            labels.push(`Otros (${otros.length})`);
             data.push(otrosCosto);
             colores.push("#9ca3af");
           }
@@ -2862,38 +3136,7 @@
               ...bOpts(),
               cutout: "48%",
               plugins: {
-                ...bOpts().plugins,
-                legend: {
-                  position: "right",
-                  labels: {
-                    font: {
-                      family: "'Plus Jakarta Sans',sans-serif",
-                      size: 8.5,
-                    },
-                    color: "#374151",
-                    padding: 5,
-                    boxWidth: 9,
-                    boxHeight: 9,
-                    // Mostrar % en la leyenda
-                    generateLabels(chart) {
-                      const ds = chart.data.datasets[0];
-                      return chart.data.labels.map((lbl, i) => {
-                        const val = ds.data[i];
-                        const p =
-                          S.kpis.total > 0
-                            ? ((val / S.kpis.total) * 100).toFixed(1)
-                            : "0";
-                        return {
-                          text: `${lbl} · ${p}%`,
-                          fillStyle: ds.backgroundColor[i],
-                          strokeStyle: ds.borderColor[i],
-                          lineWidth: 1,
-                          index: i,
-                        };
-                      });
-                    },
-                  },
-                },
+                legend: { display: false },
                 tooltip: {
                   backgroundColor: "#f0f4fb",
                   titleColor: "#111827",
@@ -2915,158 +3158,95 @@
                     title(items) {
                       return labels[items[0].dataIndex] || "";
                     },
-                    label(ctx) {
-                      return ` Costo anual: ${cop(ctx.parsed)}`;
+                    label(c) {
+                      return ` Costo: ${cop(c.parsed)}`;
                     },
-                    afterLabel(ctx) {
+                    afterLabel(c) {
                       const p =
                         S.kpis.total > 0
-                          ? ((ctx.parsed / S.kpis.total) * 100).toFixed(1)
+                          ? ((c.parsed / S.kpis.total) * 100).toFixed(1)
                           : "0";
-                      return ` Participación: ${p}% del total anual`;
+                      return ` Participación: ${p}%`;
                     },
                   },
                 },
+                datalabels: dlPie(() => S.kpis.total, 2.5),
               },
             },
           });
+          // Tabla leyenda completa debajo
+          const allItems = [
+            ...principales.map((m, i) => ({
+              nombre: m.nombre,
+              costo: m.costo,
+              color: colores[i],
+            })),
+          ];
+          if (otrosCosto > 0)
+            allItems.push({
+              nombre: `Otros (${otros.length} materiales)`,
+              costo: otrosCosto,
+              color: "#9ca3af",
+            });
+          document.getElementById("tb-todos").innerHTML = allItems
+            .map(({ nombre, costo, color }) => {
+              const p =
+                S.kpis.total > 0
+                  ? ((costo / S.kpis.total) * 100).toFixed(1)
+                  : "0";
+              return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+        background:${color};margin-right:6px;vertical-align:middle"></span>${nombre}</td>
+      <td class="tr mo bold" style="color:${color}">${p}%</td>
+      <td class="tr mo bold">${cop(costo)}</td>
+    </tr>`;
+            })
+            .join("");
         };
-        const gHist = () => {
-          killChart("hist");
-          const ctx = document.getElementById("ch-hist").getContext("2d");
-          const vals = S.materiales
-            .map((m) => Object.values(m.costos).reduce((a, b) => a + b, 0))
-            .filter((c) => c > 0);
-          if (!vals.length) return;
-          const B = 8,
-            mn = Math.min(...vals),
-            mx = Math.max(...vals),
-            st = (mx - mn) / B || 1;
-          const counts = Array(B).fill(0);
-          vals.forEach((c) => {
-            const i = Math.min(Math.floor((c - mn) / st), B - 1);
-            counts[i]++;
-          });
-          const lbls = Array.from({ length: B }, (_, i) => {
-            const lo = mn + i * st;
-            if (lo >= 1e6) return `$${(lo / 1e6).toFixed(0)}M`;
-            if (lo >= 1e3) return `$${(lo / 1e3).toFixed(0)}K`;
-            return `$${Math.round(lo).toLocaleString("es-CO")}`;
-          });
-          const g = ctx.createLinearGradient(0, 0, 0, 250);
-          g.addColorStop(0, "rgba(6,182,212,.7)");
-          g.addColorStop(1, "rgba(6,182,212,.08)");
-          charts["hist"] = new Chart(ctx, {
-            type: "bar",
-            data: {
-              labels: lbls,
-              datasets: [
-                {
-                  label: "Materiales",
-                  data: counts,
-                  backgroundColor: g,
-                  borderColor: "#06b6d4",
-                  borderWidth: 1.5,
-                  borderRadius: 5,
-                  borderSkipped: false,
-                },
-              ],
-            },
-            options: {
-              ...bOpts(),
-              scales: {
-                y: { ...yAx, ticks: { ...yAx.ticks, callback: (v) => v } },
-                x: { ...xAx, ticks: { ...xAx.ticks, maxRotation: 50 } },
-              },
-              plugins: {
-                ...bOpts().plugins,
-                legend: { display: false },
-                tooltip: {
-                  ...tipCOP,
-                  callbacks: { label: (ctx) => ` ${ctx.parsed.y} materiales` },
-                },
-              },
-            },
-          });
-        };
+        /* ── Listas de datos dentro de las cards de tendencia ── */
+        const renderListasTendencia = () => {
+          let acum = 0;
 
-        /* ── Dispersión ── */
-        const gDisp = () => {
-          killChart("disp");
-          const ctx = document.getElementById("ch-disp").getContext("2d");
-          const pts = S.materiales
-            .map((m) => ({
-              x: Object.values(m.cantidades).reduce((a, b) => a + b, 0),
-              y: Object.values(m.costos).reduce((a, b) => a + b, 0),
-              n: m.nombre,
-            }))
-            .filter((p) => p.x > 0 && p.y > 0);
-          charts["disp"] = new Chart(ctx, {
-            type: "scatter",
-            data: {
-              datasets: [
-                {
-                  label: "Materiales",
-                  data: pts,
-                  backgroundColor: "#7c3aed99",
-                  borderColor: "#7c3aed",
-                  borderWidth: 1.5,
-                  pointRadius: 5,
-                  pointHoverRadius: 8,
-                },
-              ],
-            },
-            options: {
-              ...bOpts(),
-              scales: {
-                y: {
-                  ...yAx,
-                  title: {
-                    display: true,
-                    text: "Costo COP",
-                    color: "#9ca3af",
-                    font: { family: "'Plus Jakarta Sans',sans-serif", size: 9 },
-                  },
-                },
-                x: {
-                  ...xAx,
-                  ticks: {
-                    ...xAx.ticks,
-                    callback: (v) =>
-                      v >= 1e3 ? `${(v / 1e3).toFixed(0)}K` : v,
-                  },
-                  title: {
-                    display: true,
-                    text: "Cantidad (KG)",
-                    color: "#9ca3af",
-                    font: { family: "'Plus Jakarta Sans',sans-serif", size: 9 },
-                  },
-                },
-              },
-              plugins: {
-                ...bOpts().plugins,
-                legend: { display: false },
-                tooltip: {
-                  ...tipCOP,
-                  callbacks: {
-                    label(ctx) {
-                      return [
-                        ` ${ctx.raw.n?.substring(0, 30)}`,
-                        ` Cant: ${fmtKg(ctx.raw.x)} KG`,
-                        ` Costo: ${cop(ctx.raw.y)}`,
-                      ];
-                    },
-                  },
-                },
-              },
-            },
+          // Construir filas para ambas listas a la vez
+          const rowsMensual = [];
+          const rowsAcumulado = [];
+
+          S.meses.forEach((mes, i) => {
+            const costo = S.costoPorMes[mes] ?? 0;
+            acum += costo;
+            const ant = i > 0 ? (S.costoPorMes[S.meses[i - 1]] ?? 0) : null;
+            const vp =
+              ant !== null && ant > 0 ? ((costo - ant) / ant) * 100 : null;
+            const vpStr =
+              vp !== null ? `${vp >= 0 ? "+" : ""}${vp.toFixed(1)}%` : "—";
+            const cl = vp === null ? "ne" : vp >= 0 ? "up" : "dn";
+
+            rowsMensual.push(`
+      <div class="tl-row">
+        <span class="tl-mes">${mes}</span>
+        <span class="tl-val">${cop(costo)}</span>
+        <span class="tl-var ${cl}">${vpStr}</span>
+      </div>`);
+
+            rowsAcumulado.push(`
+      <div class="tl-row">
+        <span class="tl-mes">${mes}</span>
+        <span class="tl-val">${cop(acum)}</span>
+        <span class="tl-var ne">${((acum / S.kpis.total) * 100).toFixed(0)}%</span>
+      </div>`);
           });
+
+          document.getElementById("lista-mensual").innerHTML =
+            rowsMensual.join("");
+          document.getElementById("lista-acumulado").innerHTML =
+            rowsAcumulado.join("");
         };
 
         const renderResumen = () => {
           renderKPIs();
           renderVarMensual();
           renderTablaRes();
+          renderListasTendencia();
           requestAnimationFrame(() =>
             setTimeout(() => {
               gLinea();
@@ -3074,8 +3254,6 @@
               gBarras();
               gPastel();
               gPastelTodos();
-              gHist();
-              gDisp();
             }, 180),
           );
         };
@@ -3211,22 +3389,43 @@
         .join("")}
     </div>
 
-    <div class="g2 fi vis" style="margin-bottom:18px">
-      <div class="cc">
-        <div class="cch">
-          <div><div class="cc-t">Distribución del Mes · ${mes}</div>
-            <div class="cc-s">Top insumos por costo en COP</div></div>
-          <span class="cc-b">Barras</span>
-        </div>
-        <div class="cw h320"><canvas id="ch-mes-bar"></canvas></div>
+    <div class="cc fi vis" style="margin-bottom:18px">
+      <div class="cch">
+        <div><div class="cc-t">Distribución del Mes · ${mes}</div>
+          <div class="cc-s">Top 10 insumos por costo COP</div></div>
+        <span class="cc-b">Barras</span>
       </div>
-      <div class="cc">
-        <div class="cch">
-          <div><div class="cc-t">Participación · ${mes}</div>
-            <div class="cc-s">% de cada insumo en el mes</div></div>
-          <span class="cc-b">Pastel</span>
-        </div>
-        <div class="cw h320"><canvas id="ch-mes-pie"></canvas></div>
+      <div class="cw h320"><canvas id="ch-mes-bar"></canvas></div>
+      <div class="dv" style="margin:12px 0 8px"></div>
+      <div class="tw">
+        <table class="tbl">
+          <thead><tr>
+            <th>#</th><th>Insumo</th>
+            <th class="tr">Costo COP</th>
+            <th class="tr">% del Mes</th>
+          </tr></thead>
+          <tbody id="tb-mes-bar"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="cc fi vis" style="margin-bottom:18px">
+      <div class="cch">
+        <div><div class="cc-t">Participación · ${mes}</div>
+          <div class="cc-s">% en cada sector · leyenda abajo</div></div>
+        <span class="cc-b">Pastel</span>
+      </div>
+      <div class="cw h300"><canvas id="ch-mes-pie"></canvas></div>
+      <div class="dv" style="margin:12px 0 8px"></div>
+      <div class="tw">
+        <table class="tbl">
+          <thead><tr>
+            <th>Insumo</th>
+            <th class="tr">% del Mes</th>
+            <th class="tr">Costo COP</th>
+          </tr></thead>
+          <tbody id="tb-mes-pie"></tbody>
+        </table>
       </div>
     </div>
 
@@ -3236,13 +3435,13 @@
           <div class="cc-s">${numMat} insumos con consumo · valores en COP</div></div>
         <span class="cc-b">${numMat} insumos</span>
       </div>
-      <div class="tw" style="max-height:420px;overflow-y:auto">
+      <div class="tw">
         <table class="tbl">
           <thead><tr>
             <th>#</th><th>Código</th><th>Insumo</th>
             <th class="tr">Cant. KG</th>
             <th class="tr">Costo COP</th>
-            <th>Participación</th>
+            <th>Part. Mes</th>
             <th>Vs Mes Ant.</th>
           </tr></thead>
           <tbody>${filasTbl}</tbody>
@@ -3252,13 +3451,40 @@
 
           // Renderizar gráficas del mes
           requestAnimationFrame(() => {
-            // Top 10 barras del mes
+            // ── Barras del mes: tooltip con COP + tabla abajo ──
             killChart("mes-bar");
             const top10mes = matMes.slice(0, 10);
             const ctxB = document.getElementById("ch-mes-bar").getContext("2d");
-            const gB = ctxB.createLinearGradient(0, 0, 200, 0);
-            gB.addColorStop(0, "rgba(79,126,247,.8)");
-            gB.addColorStop(1, "rgba(79,126,247,.3)");
+            const tipBarMes = {
+              backgroundColor: "#f0f4fb",
+              titleColor: "#111827",
+              bodyColor: "#374151",
+              borderColor: "rgba(79,126,247,.2)",
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 9,
+              titleFont: {
+                family: "'Outfit',sans-serif",
+                weight: "700",
+                size: 12,
+              },
+              bodyFont: { family: "'Plus Jakarta Sans',sans-serif", size: 11 },
+              callbacks: {
+                title(items) {
+                  return top10mes[items[0].dataIndex]?.nombre || items[0].label;
+                },
+                label(c) {
+                  return ` Costo: ${cop(c.parsed.x)}`;
+                },
+                afterLabel(c) {
+                  const p =
+                    costoMes > 0
+                      ? ((c.parsed.x / costoMes) * 100).toFixed(1)
+                      : "0";
+                  return ` % del mes: ${p}%`;
+                },
+              },
+            };
             charts["mes-bar"] = new Chart(ctxB, {
               type: "bar",
               data: {
@@ -3296,27 +3522,41 @@
                     border: { display: false },
                   },
                 },
-                plugins: { ...bOpts().plugins, legend: { display: false } },
+                plugins: { legend: { display: false }, tooltip: tipBarMes },
               },
             });
+            // Tabla bajo barras del mes
+            document.getElementById("tb-mes-bar").innerHTML = top10mes
+              .map((m, i) => {
+                const p =
+                  costoMes > 0
+                    ? ((m.costoMes / costoMes) * 100).toFixed(1)
+                    : "0";
+                return `<tr>
+        <td><span class="rn ${i < 3 ? "tp" : ""}">${i + 1}</span></td>
+        <td><span style="display:inline-block;width:9px;height:9px;border-radius:50%;
+          background:${PALETA[i]};margin-right:6px;vertical-align:middle"></span>${m.nombre}</td>
+        <td class="tr mo bold">${cop(m.costoMes)}</td>
+        <td class="tr mo" style="color:${PALETA[i]};font-weight:700">${p}%</td>
+      </tr>`;
+              })
+              .join("");
 
-            // Pastel del mes
+            // ── Pastel del mes: % en sectores, tabla abajo ──
             killChart("mes-pie");
             const top8mes = matMes.slice(0, 8);
-            const otrosCosto = matMes
+            const otrosCostoMes = matMes
               .slice(8)
               .reduce((a, m) => a + m.costoMes, 0);
-            const pieLbls = [
-              ...top8mes.map((m) =>
-                m.nombre.length > 20
-                  ? m.nombre.substring(0, 20) + "…"
-                  : m.nombre,
-              ),
-            ];
-            const pieData = [...top8mes.map((m) => m.costoMes)];
-            if (otrosCosto > 0) {
-              pieLbls.push("Otros");
-              pieData.push(otrosCosto);
+            const pieLbls = top8mes.map((m) =>
+              m.nombre.length > 22 ? m.nombre.substring(0, 22) + "…" : m.nombre,
+            );
+            const pieData = top8mes.map((m) => m.costoMes);
+            const pieColores = PALETA.slice(0, 8);
+            if (otrosCostoMes > 0) {
+              pieLbls.push(`Otros (${matMes.length - 8})`);
+              pieData.push(otrosCostoMes);
+              pieColores.push("#9ca3af");
             }
             const ctxP = document.getElementById("ch-mes-pie").getContext("2d");
             charts["mes-pie"] = new Chart(ctxP, {
@@ -3326,11 +3566,8 @@
                 datasets: [
                   {
                     data: pieData,
-                    backgroundColor: [
-                      ...PALETA.slice(0, 8).map((c) => c + "d0"),
-                      "#9ca3af88",
-                    ],
-                    borderColor: [...PALETA.slice(0, 8), "#9ca3af"],
+                    backgroundColor: pieColores.map((c) => c + "d0"),
+                    borderColor: pieColores,
                     borderWidth: 2,
                     hoverOffset: 7,
                   },
@@ -3338,34 +3575,51 @@
               },
               options: {
                 ...bOpts(),
-                cutout: "54%",
+                cutout: "50%",
                 plugins: {
-                  ...bOpts().plugins,
-                  legend: {
-                    position: "right",
-                    labels: {
-                      font: {
-                        family: "'Plus Jakarta Sans',sans-serif",
-                        size: 9,
-                      },
-                      color: "#374151",
-                      padding: 6,
-                      boxWidth: 9,
-                      boxHeight: 9,
-                    },
-                  },
+                  legend: { display: false },
                   tooltip: {
                     ...tipCOP,
                     callbacks: {
-                      label(ctx) {
-                        const p = ((ctx.parsed / costoMes) * 100).toFixed(1);
-                        return ` ${cop(ctx.parsed)}  (${p}%)`;
+                      label(c) {
+                        const p =
+                          costoMes > 0
+                            ? ((c.parsed / costoMes) * 100).toFixed(1)
+                            : "0";
+                        return ` ${cop(c.parsed)}  (${p}%)`;
                       },
                     },
                   },
+                  datalabels: dlPie(costoMes, 3),
                 },
               },
             });
+            // Tabla leyenda pastel mensual
+            const allPie = [
+              ...top8mes.map((m, i) => ({
+                nombre: m.nombre,
+                costo: m.costoMes,
+                color: PALETA[i],
+              })),
+            ];
+            if (otrosCostoMes > 0)
+              allPie.push({
+                nombre: `Otros (${matMes.length - 8} insumos)`,
+                costo: otrosCostoMes,
+                color: "#9ca3af",
+              });
+            document.getElementById("tb-mes-pie").innerHTML = allPie
+              .map(({ nombre, costo, color }) => {
+                const p =
+                  costoMes > 0 ? ((costo / costoMes) * 100).toFixed(1) : "0";
+                return `<tr>
+        <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+          background:${color};margin-right:6px;vertical-align:middle"></span>${nombre}</td>
+        <td class="tr mo bold" style="color:${color}">${p}%</td>
+        <td class="tr mo bold">${cop(costo)}</td>
+      </tr>`;
+              })
+              .join("");
           });
         };
 
@@ -3529,6 +3783,11 @@
           <span class="cc-b">Barras</span>
         </div>
         <div class="cw h250"><canvas id="ch-ficha-bar"></canvas></div>
+        <div class="dv" style="margin:10px 0 7px"></div>
+        <div class="tw"><table class="tbl">
+          <thead><tr><th>Mes</th><th class="tr">Costo COP</th><th class="tr">% Insumo</th></tr></thead>
+          <tbody id="tb-ficha-bar"></tbody>
+        </table></div>
       </div>
       <div class="cc">
         <div class="cch">
@@ -3537,6 +3796,11 @@
           <span class="cc-b">Línea</span>
         </div>
         <div class="cw h250"><canvas id="ch-ficha-kg"></canvas></div>
+        <div class="dv" style="margin:10px 0 7px"></div>
+        <div class="tw"><table class="tbl">
+          <thead><tr><th>Mes</th><th class="tr">Cant. KG</th><th class="tr">% del Año</th></tr></thead>
+          <tbody id="tb-ficha-kg"></tbody>
+        </table></div>
       </div>
     </div>
 
@@ -3580,7 +3844,7 @@
             charts["ficha-bar"] = new Chart(g1, {
               type: "bar",
               data: {
-                labels: S.meses,
+                labels: S.meses.map((m) => m.substring(0, 3)),
                 datasets: [
                   {
                     label: "Costo COP",
@@ -3599,6 +3863,19 @@
                 plugins: { ...bOpts().plugins, legend: { display: false } },
               },
             });
+            // Tabla mes/costo bajo barras
+            document.getElementById("tb-ficha-bar").innerHTML = S.meses
+              .map((mes) => {
+                const c = mat.costos[mes] ?? 0;
+                const p =
+                  costoAnual > 0 ? ((c / costoAnual) * 100).toFixed(1) : "0";
+                return `<tr${c === 0 ? ' style="opacity:.4"' : ""}>
+        <td class="bold">${mes}</td>
+        <td class="tr mo bold">${c > 0 ? cop(c) : "—"}</td>
+        <td class="tr mo" style="color:${c > 0 ? "var(--a1)" : "var(--mu)"}">${p}%</td>
+      </tr>`;
+              })
+              .join("");
 
             killChart("ficha-kg");
             const g2 = document.getElementById("ch-ficha-kg").getContext("2d");
@@ -3608,7 +3885,7 @@
             charts["ficha-kg"] = new Chart(g2, {
               type: "line",
               data: {
-                labels: S.meses,
+                labels: S.meses.map((m) => m.substring(0, 3)),
                 datasets: [
                   {
                     label: "Cantidad KG",
@@ -3648,6 +3925,19 @@
                 },
               },
             });
+            // Tabla mes/kg bajo línea
+            document.getElementById("tb-ficha-kg").innerHTML = S.meses
+              .map((mes) => {
+                const k = mat.cantidades[mes] ?? 0;
+                const p =
+                  cantAnual > 0 ? ((k / cantAnual) * 100).toFixed(1) : "0";
+                return `<tr${k === 0 ? ' style="opacity:.4"' : ""}>
+        <td class="bold">${mes}</td>
+        <td class="tr mo bold">${k > 0 ? fmtKg(k) + " KG" : "—"}</td>
+        <td class="tr mo" style="color:${k > 0 ? "var(--a4)" : "var(--mu)"}">${p}%</td>
+      </tr>`;
+              })
+              .join("");
           });
         };
 
@@ -3765,7 +4055,7 @@
             `${O}body${C}`,
             `${O}div class="header"${C}`,
             `${O}div class="h-title"${C}${mat.nombre}${S}div${C}`,
-            `${O}div class="h-sub"${C}Código: ${mat.codigo} · Ficha de Insumo · Análisis de Consumos · Pesos Colombianos (COP)${S}div${C}`,
+            `${O}div class="h-sub"${C}Código: ${mat.codigo} · Ficha de Insumo · Supervisor de Línea Plantas Procesos · AVSA S.A. · COP${S}div${C}`,
             `${S}div${C}`,
             `${O}div class="kg"${C}${kpisHTML}${S}div${C}`,
             `${O}div class="cc"${C}`,
@@ -3782,7 +4072,7 @@
             `${O}td style="text-align:right"${C}100%${S}td${C}`,
             `${O}td style="text-align:right"${C}${pctA}${S}td${C}`,
             `${O}td${C}—${S}td${C}${S}tr${C}${S}tfoot${C}${S}table${C}${S}div${C}`,
-            `${O}div class="footer"${C}DataPro · Generado el ${fechaStr2}${S}div${C}`,
+            `${O}div class="footer"${C}Jefferson Stanly Patiño Cajamarca · Supervisor de Línea Plantas Procesos · AVSA S.A. · Generado el ${fechaStr2}${S}div${C}`,
             `${O}script${C}window.onload=()=>setTimeout(()=>window.print(),400);${S}script${C}`,
             `${S}body${C}${S}html${C}`,
           ].join("\n");
@@ -3867,32 +4157,83 @@
 
     <div class="cc fi vis" style="margin-bottom:16px">
       <div class="cch">
-        <div><div class="cc-t">Tabla Comparativa</div>
-          <div class="cc-s">Valores mensuales en COP por insumo</div></div>
+        <div><div class="cc-t">Tabla Comparativa de Costos</div>
+          <div class="cc-s">Mes por fila · insumo por columna · valores en COP</div></div>
       </div>
       <div class="tw">
         <table class="tbl">
-          <thead><tr>
-            <th>Mes</th>
-            ${mats.map(({ mat, color }) => `<th style="text-align:right;color:${color}">${mat.nombre.substring(0, 22)}${mat.nombre.length > 22 ? "…" : ""}</th>`).join("")}
-          </tr></thead>
-          <tbody>${filasCmp}</tbody>
-          <tfoot><tr style="background:var(--deep)">
-            <td class="bold">TOTAL ANUAL</td>${totalesRow}
-          </tr></tfoot>
+          <thead>
+            <tr>
+              <th>Mes</th>
+              ${mats
+                .map(
+                  ({ mat, color }) => `
+                <th class="tr" style="color:${color}">
+                  <span style="display:inline-block;width:8px;height:8px;border-radius:50%;
+                    background:${color};margin-right:5px;vertical-align:middle"></span>
+                  ${mat.nombre.length > 26 ? mat.nombre.substring(0, 26) + "…" : mat.nombre}
+                </th>`,
+                )
+                .join("")}
+            </tr>
+          </thead>
+          <tbody>
+            ${S.meses
+              .map((mes) => {
+                const celdas = mats
+                  .map(({ mat, color }) => {
+                    const cost = mat.costos[mes] ?? 0;
+                    return `<td class="tr mo" style="color:${cost > 0 ? color : "var(--mu)"};font-weight:${cost > 0 ? 700 : 400}">
+                  ${cost > 0 ? cop(cost) : "—"}
+                </td>`;
+                  })
+                  .join("");
+                return `<tr><td class="bold">${mes}</td>${celdas}</tr>`;
+              })
+              .join("")}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="bold">TOTAL ANUAL</td>
+              ${mats
+                .map(({ mat, color }) => {
+                  const t = Object.values(mat.costos).reduce(
+                    (a, b) => a + b,
+                    0,
+                  );
+                  return `<td class="tr mo bold" style="color:${color}">${cop(t)}</td>`;
+                })
+                .join("")}
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>`;
 
           requestAnimationFrame(() => {
-            // Líneas comparativas
+            // ── Líneas comparativas — labels alternados sin choques ──
             killChart("cmp-l");
             const ctxL = document.getElementById("ch-cmp-l").getContext("2d");
+            // Formatter compacto con separadores
+            const fmtCmp = (v) => {
+              if (!v) return "";
+              if (v >= 1e6)
+                return `$${(v / 1e6).toFixed(1).replace(".", ",")}M`;
+              if (v >= 1e3)
+                return `$${Math.round(v / 1e3).toLocaleString("es-CO")}K`;
+              return cop(v);
+            };
+            // Posiciones alternadas por dataset para evitar solapamiento
+            const aligns = [
+              ["top", "bottom", "top"],
+              ["end", "start", "end"],
+            ];
+            const offsets = [6, 10, 6];
             charts["cmp-l"] = new Chart(ctxL, {
               type: "line",
               data: {
-                labels: S.meses,
-                datasets: mats.map(({ mat, color }) => ({
+                labels: S.meses.map((m) => m.substring(0, 3)),
+                datasets: mats.map(({ mat, color }, di) => ({
                   label:
                     mat.nombre.length > 30
                       ? mat.nombre.substring(0, 30) + "…"
@@ -3902,22 +4243,43 @@
                   backgroundColor: "transparent",
                   borderWidth: 2.2,
                   tension: 0.38,
-                  pointRadius: 5,
+                  pointRadius: 4,
                   pointBackgroundColor: color,
                   pointBorderColor: "#fff",
                   pointBorderWidth: 2,
+                  datalabels: {
+                    align: aligns[0][di],
+                    anchor: aligns[1][di],
+                    offset: offsets[di],
+                    formatter: fmtCmp,
+                    font: {
+                      family: "'JetBrains Mono',monospace",
+                      size: 7.5,
+                      weight: "600",
+                    },
+                    color: color,
+                    backgroundColor: "rgba(240,244,251,.9)",
+                    borderRadius: 3,
+                    padding: { top: 1, bottom: 1, left: 2, right: 2 },
+                    clamp: true, // Evita que se salgan del canvas
+                  },
                 })),
               },
-              options: { ...bOpts(), scales: { y: yAx, x: xAx } },
+              options: {
+                ...bOpts(),
+                layout: { padding: { top: 28, bottom: 24, left: 4, right: 4 } },
+                scales: { y: { ...yAx, grace: "18%" }, x: xAx },
+                plugins: { ...bOpts().plugins, datalabels: { display: true } },
+              },
             });
 
-            // Barras agrupadas
+            // ── Barras agrupadas ──
             killChart("cmp-b");
             const ctxB = document.getElementById("ch-cmp-b").getContext("2d");
             charts["cmp-b"] = new Chart(ctxB, {
               type: "bar",
               data: {
-                labels: S.meses,
+                labels: S.meses.map((m) => m.substring(0, 3)),
                 datasets: mats.map(({ mat, color }) => ({
                   label:
                     mat.nombre.length > 22
@@ -3961,100 +4323,274 @@
         };
 
         /* ══════════════════════════════════════════
-   EXPORT PDF — html2canvas + jsPDF
-   Captura visual exacta igual a GoFullPage
-   Incluye los canvas de Chart.js correctamente
+   TOGGLE MENÚ PDF
 ══════════════════════════════════════════ */
-        window.exportarPDF = async () => {
-          const btnPDF = document.getElementById("btn-pdf");
-          const tabActivo = document.querySelector(".section.active");
-          if (!tabActivo) {
-            toast("No hay contenido para exportar", "err");
-            return;
+        window.togglePdfMenu = () => {
+          const menu = document.getElementById("pdf-menu");
+          menu.style.display = menu.style.display === "none" ? "block" : "none";
+        };
+        document.addEventListener("click", (e) => {
+          const wrap = document.getElementById("pdf-wrap");
+          if (wrap && !wrap.contains(e.target)) {
+            const m = document.getElementById("pdf-menu");
+            if (m) m.style.display = "none";
+          }
+        });
+
+        /* ══════════════════════════════════════════
+   SMART PAGE CUTS
+   Nunca corta dentro de un elemento.
+   Para tablas, corta entre filas.
+   Si un bloque no cabe, lo pasa a la
+   siguiente página (espacio en blanco).
+══════════════════════════════════════════ */
+        const buildSmartPages = (section, captured, contentW, contentH) => {
+          const mmPerCapPx = contentW / captured.width;
+          const domScale = captured.height / section.scrollHeight;
+          const domToMM = (y) => y * domScale * mmPerCapPx;
+          const totalMM = domToMM(section.scrollHeight);
+
+          const safe = new Set([0, totalMM]);
+
+          // Bordes de hijos directos
+          for (const el of section.children) {
+            const t = el.offsetTop,
+              b = t + el.offsetHeight;
+            safe.add(domToMM(t));
+            safe.add(domToMM(b));
+            // Hijos de grids (g2, g3, kg, vg)
+            if (/\b(g2|g3|kg|vg)\b/.test(el.className)) {
+              for (const child of el.children) {
+                safe.add(domToMM(t + child.offsetTop));
+                safe.add(domToMM(t + child.offsetTop + child.offsetHeight));
+              }
+            }
           }
 
-          // Estado de carga
+          // Filas de tablas
+          const secY0 = section.getBoundingClientRect().top + window.scrollY;
+          section.querySelectorAll("tr").forEach((tr) => {
+            const r = tr.getBoundingClientRect();
+            const top = r.top + window.scrollY - secY0;
+            safe.add(domToMM(top));
+            safe.add(domToMM(top + r.height));
+          });
+
+          // Dividers
+          section.querySelectorAll(".dv").forEach((dv) => {
+            safe.add(domToMM(dv.offsetTop));
+            safe.add(domToMM(dv.offsetTop + dv.offsetHeight));
+          });
+
+          const pts = [...safe]
+            .filter((p) => isFinite(p) && p >= 0)
+            .sort((a, b) => a - b);
+
+          const pages = [];
+          let pos = 0;
+          while (pos < totalMM - 0.5) {
+            const target = pos + contentH;
+            if (target >= totalMM) {
+              pages.push({ startMM: pos, heightMM: totalMM - pos });
+              break;
+            }
+            const cands = pts.filter((p) => p > pos && p <= target);
+            let cutAt;
+            if (cands.length > 0) {
+              cutAt = cands[cands.length - 1];
+            } else {
+              const next = pts.find((p) => p > target);
+              cutAt = next !== undefined ? next : target;
+            }
+            pages.push({ startMM: pos, heightMM: cutAt - pos });
+            pos = cutAt;
+          }
+          return pages;
+        };
+
+        /* ══════════════════════════════════════════
+   EXPORT PDF — sección individual o todas
+══════════════════════════════════════════ */
+        window.exportarPDF = async (cual = "resumen") => {
+          const menu = document.getElementById("pdf-menu");
+          if (menu) menu.style.display = "none";
+
+          // ── Modal de confirmación ──────────────────────────────────────
+          const confirmed = await new Promise((resolve) => {
+            const overlay = document.createElement("div");
+            overlay.style.cssText = [
+              "position:fixed",
+              "inset:0",
+              "z-index:600",
+              "background:rgba(234,239,247,.97)",
+              "backdrop-filter:blur(18px)",
+              "-webkit-backdrop-filter:blur(18px)",
+              "display:flex",
+              "align-items:center",
+              "justify-content:center",
+              "padding:20px",
+            ].join(";");
+
+            const checks =
+              cual === "all"
+                ? [
+                    {
+                      ico: "📊",
+                      tab: "Resumen General",
+                      note: "Se exporta completo automáticamente",
+                      auto: true,
+                    },
+                    {
+                      ico: "📅",
+                      tab: "Análisis Mensual",
+                      note: "¿Seleccionaste el mes que deseas ver?",
+                      auto: false,
+                    },
+                    {
+                      ico: "🔍",
+                      tab: "Ficha por Insumo",
+                      note: "¿Seleccionaste el insumo deseado?",
+                      auto: false,
+                    },
+                    {
+                      ico: "📈",
+                      tab: "Comparativa",
+                      note: "¿Pusiste los 2 o 3 insumos a comparar?",
+                      auto: false,
+                    },
+                  ]
+                : [
+                    {
+                      ico: "📄",
+                      tab:
+                        {
+                          resumen: "Resumen General",
+                          mensual: "Análisis Mensual",
+                          insumo: "Ficha por Insumo",
+                          comparativa: "Comparativa",
+                        }[cual] || cual,
+                      note: "Se exportará esta sección con la configuración actual.",
+                      auto: true,
+                    },
+                  ];
+
+            const items = checks
+              .map(
+                ({ ico, tab, note, auto }) => `
+      <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
+        background:${auto ? "rgba(16,185,129,.07)" : "rgba(79,126,247,.06)"};
+        border-radius:10px;border-left:3px solid ${auto ? "#10b981" : "#4f7ef7"}">
+        <span style="font-size:19px;flex-shrink:0">${ico}</span>
+        <div>
+          <div style="font-family:'Outfit',sans-serif;font-size:.84rem;font-weight:700;
+            color:#111827;margin-bottom:2px">${tab}</div>
+          <div style="font-size:.72rem;color:#6b7280">${note}</div>
+        </div>
+        <span style="margin-left:auto;font-size:16px;flex-shrink:0">${auto ? "✅" : "⚠️"}</span>
+      </div>`,
+              )
+              .join("");
+
+            overlay.innerHTML = `
+      <div style="background:#f0f4fb;border-radius:24px;padding:32px 28px;
+        box-shadow:12px 12px 40px #bcc6d6,-6px -6px 20px #fff;
+        max-width:480px;width:100%">
+        <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;
+          color:#111827;margin-bottom:4px;letter-spacing:-.03em">
+          ¿Listo para generar el PDF?
+        </div>
+        <div style="font-size:.8rem;color:#9ca3af;margin-bottom:20px">
+          ${
+            cual === "all"
+              ? "Se exportarán las 4 secciones en un solo documento. Confirma que cada sección está configurada."
+              : "Revisa que la sección tenga la información que deseas exportar."
+          }
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">${items}</div>
+        ${
+          cual === "all"
+            ? `<div style="background:rgba(245,158,11,.1);border-radius:10px;
+          padding:10px 14px;margin-bottom:20px;font-size:.75rem;color:#b45309;
+          display:flex;gap:8px;align-items:flex-start">
+          <span>💡</span>
+          <span>Si aún no configuraste alguna sección, cancela, navega a esa pestaña, selecciona los datos y vuelve aquí.</span>
+        </div>`
+            : ""
+        }
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button id="pdf-cancel" style="padding:10px 20px;border-radius:50px;border:none;
+            background:#dce3ef;color:#374151;font-family:'Outfit',sans-serif;
+            font-size:.82rem;font-weight:700;cursor:pointer">Cancelar</button>
+          <button id="pdf-ok" style="padding:10px 24px;border-radius:50px;border:none;
+            background:linear-gradient(135deg,#4f7ef7,#7c3aed);color:#fff;
+            font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:700;
+            cursor:pointer;box-shadow:0 4px 18px rgba(79,126,247,.32)">
+            🖨 Sí, generar PDF
+          </button>
+        </div>
+      </div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector("#pdf-cancel").onclick = () => {
+              overlay.remove();
+              resolve(false);
+            };
+            overlay.querySelector("#pdf-ok").onclick = () => {
+              overlay.remove();
+              resolve(true);
+            };
+            overlay.onclick = (e) => {
+              if (e.target === overlay) {
+                overlay.remove();
+                resolve(false);
+              }
+            };
+          });
+
+          if (!confirmed) return;
+
+          const btnPDF = document.getElementById("btn-pdf");
           btnPDF.textContent = "⏳ Generando...";
           btnPDF.disabled = true;
-          ldr(true, "Capturando página...");
+
+          // Guardar tab activo para restaurar al final
+          const tabActivoOriginal =
+            document.querySelector(".section.active")?.id || "tab-resumen";
+
+          // Siempre exportar en orden canónico cuando es "todas"
+          const tabIds =
+            cual === "all"
+              ? ["tab-resumen", "tab-mensual", "tab-insumo", "tab-comparativa"]
+              : [`tab-${cual}`];
+
+          const tabNames = {
+            "tab-resumen": "Resumen General",
+            "tab-mensual": "Análisis Mensual",
+            "tab-insumo": "Ficha por Insumo",
+            "tab-comparativa": "Comparativa de Insumos",
+          };
+          const fecha = new Date().toLocaleDateString("es-CO", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+
+          const _origCP = CanvasRenderingContext2D.prototype.createPattern;
+          CanvasRenderingContext2D.prototype.createPattern = function (
+            img,
+            rep,
+          ) {
+            if (img instanceof HTMLCanvasElement) {
+              if (img.width < 1) img.width = 1;
+              if (img.height < 1) img.height = 1;
+            }
+            return _origCP.call(this, img, rep);
+          };
 
           try {
-            // Asegurar que todo esté visible (animaciones resueltas)
             document
               .querySelectorAll(".fi")
               .forEach((el) => el.classList.add("vis"));
 
-            // Esperar a que los charts terminen de renderizar
-            await new Promise((r) => setTimeout(r, 500));
-
-            ldr(true, "Renderizando gráficas...");
-
-            // ── MONKEY-PATCH DEFINITIVO ──────────────────────────────────
-            // html2canvas genera canvas internos de 0×0 al procesar gradientes CSS
-            // en elementos con dimensión computada 0 (ej: .pb-f con width:0%).
-            // No hay forma de prevenirlo desde opciones → interceptar createPattern
-            // a nivel de prototype y forzar mínimo 1px antes de que falle.
-            const _origCP = CanvasRenderingContext2D.prototype.createPattern;
-            CanvasRenderingContext2D.prototype.createPattern = function (
-              img,
-              rep,
-            ) {
-              if (img instanceof HTMLCanvasElement) {
-                if (img.width < 1) img.width = 1;
-                if (img.height < 1) img.height = 1;
-              }
-              return _origCP.call(this, img, rep);
-            };
-
-            const canvasOpts = {
-              scale: 2,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: "#eaeff7",
-              logging: false,
-              scrollX: 0,
-              scrollY: -window.scrollY,
-              windowWidth: document.documentElement.scrollWidth,
-              windowHeight: document.documentElement.scrollHeight,
-              ignoreElements: (el) => {
-                if (
-                  el.id &&
-                  ["hdr", "tabs-nav", "ldr", "tc", "fi"].includes(el.id)
-                )
-                  return true;
-                if (
-                  el.classList &&
-                  (el.classList.contains("btn-up") ||
-                    el.classList.contains("btn-pdf"))
-                )
-                  return true;
-                return false;
-              },
-              onclone: (clonedDoc) => {
-                clonedDoc.querySelectorAll("canvas").forEach((cv) => {
-                  if (cv.width < 1) cv.width = 1;
-                  if (cv.height < 1) cv.height = 1;
-                });
-                clonedDoc.querySelectorAll(".section").forEach((s) => {
-                  s.style.display = s.classList.contains("active")
-                    ? "block"
-                    : "none";
-                });
-                clonedDoc
-                  .querySelectorAll(".fi")
-                  .forEach((el) => el.classList.add("vis"));
-              },
-            };
-
-            ldr(true, "Capturando contenido...");
-            const captured = await html2canvas(tabActivo, canvasOpts);
-
-            // ── Restaurar createPattern original
-            CanvasRenderingContext2D.prototype.createPattern = _origCP;
-
-            ldr(true, "Construyendo PDF...");
-
-            // Configurar jsPDF — A4 portrait
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({
               orientation: "portrait",
@@ -4062,138 +4598,193 @@
               format: "a4",
               compress: true,
             });
+            const pageW = pdf.internal.pageSize.getWidth(),
+              pageH = pdf.internal.pageSize.getHeight();
+            const mX = 6,
+              mY = 6,
+              hH = 11,
+              fH = 8;
+            const cW = pageW - mX * 2,
+              cH = pageH - mY * 2 - hH - fH;
 
-            const pageW = pdf.internal.pageSize.getWidth(); // 210mm
-            const pageH = pdf.internal.pageSize.getHeight(); // 297mm
-            const marginX = 6; // mm margen lateral
-            const marginY = 8; // mm margen vertical
-            const headerH = 10; // mm altura del header de cada página
-            const footerH = 7; // mm altura del footer
-            const contentW = pageW - marginX * 2;
-            const contentH = pageH - marginY * 2 - headerH - footerH;
-
-            // Dimensiones de la imagen capturada
-            const imgW = captured.width;
-            const imgH = captured.height;
-
-            // Escala para que el ancho encaje en la página
-            const scale = contentW / (imgW * 0.264583); // px a mm (96dpi)
-            const totalH = imgH * 0.264583 * scale; // altura total en mm
-
-            // Número de páginas necesarias
-            const totalPages = Math.ceil(totalH / contentH);
-
-            // Nombre del tab activo para el header
-            const tabName =
-              {
-                "tab-resumen": "Resumen General",
-                "tab-mensual": "Análisis Mensual",
-                "tab-insumo": "Ficha por Insumo",
-                "tab-comparativa": "Comparativa de Insumos",
-              }[tabActivo.id] || "Análisis";
-
-            const fecha = new Date().toLocaleDateString("es-CO", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            });
-
-            // Convertir canvas a imagen base64
-            const imgData = captured.toDataURL("image/jpeg", 0.92);
-
-            // Generar páginas
-            for (let page = 0; page < totalPages; page++) {
-              if (page > 0) pdf.addPage();
-
-              // ── Header de página ──
-              // Fondo del header
+            const drawFrame = (pg, total, tabName) => {
               pdf.setFillColor(79, 126, 247);
-              pdf.roundedRect(marginX, marginY, contentW, headerH, 2, 2, "F");
-              // Logo/brand
+              pdf.roundedRect(mX, mY, cW, hH, 2, 2, "F");
               pdf.setTextColor(255, 255, 255);
               pdf.setFont("helvetica", "bold");
               pdf.setFontSize(7.5);
-              pdf.text("DataPro", marginX + 3, marginY + 4);
+              pdf.text("Jefferson Stanly Patiño Cajamarca", mX + 3, mY + 4.5);
               pdf.setFont("helvetica", "normal");
               pdf.setFontSize(6.5);
               pdf.text(
-                tabName + " · Análisis de Consumos",
-                marginX + 3,
-                marginY + 8,
+                "Supervisor de Línea Plantas Procesos · AVSA S.A. · " + tabName,
+                mX + 3,
+                mY + 9,
               );
-              // Página N/total a la derecha
-              pdf.text(
-                `Pág. ${page + 1} / ${totalPages}`,
-                pageW - marginX - 3,
-                marginY + 4,
-                { align: "right" },
-              );
-              pdf.text(fecha, pageW - marginX - 3, marginY + 8, {
+              pdf.text(`Pág. ${pg} / ${total}`, pageW - mX - 3, mY + 4.5, {
                 align: "right",
               });
-
-              // ── Contenido: slice de la imagen ──
-              const srcY = page * contentH; // mm desde donde cortar
-              const srcYpx = srcY / (0.264583 * scale); // en px originales
-              const sliceH = Math.min(contentH, totalH - srcY); // mm de contenido esta página
-              const sliceHpx = sliceH / (0.264583 * scale);
-
-              // Crear canvas recortado para este segmento
-              const sliceCanvas = document.createElement("canvas");
-              sliceCanvas.width = imgW;
-              sliceCanvas.height = Math.ceil(sliceHpx);
-              const sliceCtx = sliceCanvas.getContext("2d");
-              sliceCtx.drawImage(
-                captured,
-                0,
-                srcYpx, // fuente: x,y
-                imgW,
-                Math.ceil(sliceHpx), // fuente: w,h
-                0,
-                0, // destino: x,y
-                imgW,
-                Math.ceil(sliceHpx), // destino: w,h
-              );
-
-              const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.92);
-              const destY = marginY + headerH + 2;
-
-              pdf.addImage(sliceData, "JPEG", marginX, destY, contentW, sliceH);
-
-              // ── Footer de página ──
-              const footerY = pageH - marginY - footerH + 2;
+              pdf.text(fecha, pageW - mX - 3, mY + 9, { align: "right" });
+              const fy = pageH - mY - fH + 2;
               pdf.setDrawColor(220, 227, 239);
               pdf.setLineWidth(0.3);
-              pdf.line(marginX, footerY, pageW - marginX, footerY);
+              pdf.line(mX, fy, pageW - mX, fy);
               pdf.setTextColor(156, 163, 175);
               pdf.setFont("helvetica", "normal");
               pdf.setFontSize(6);
               pdf.text(
-                "DataPro · Reporte Análisis de Consumos · Pesos Colombianos (COP)",
+                "Jefferson Stanly Patiño Cajamarca · Supervisor de Línea · AVSA S.A. ",
                 pageW / 2,
-                footerY + 3.5,
+                fy + 3.5,
                 { align: "center" },
               );
+            };
+
+            // ── Captura + plan de páginas mientras la sección está VISIBLE ──
+            // FIX CLAVE: buildSmartPages se llama ANTES de ocultar la sección
+            // (cuando display:none, scrollHeight=0 → páginas vacías)
+            const captureAndPlan = async (tabId) => {
+              const sec = document.getElementById(tabId);
+              if (!sec) return null;
+              ldr(true, `Capturando ${tabNames[tabId]}...`);
+
+              // ── Mostrar esta sección limpiamente ──
+              // Limpiar TODOS los display inline y clases active primero
+              document.querySelectorAll(".section").forEach((s) => {
+                s.classList.remove("active");
+                s.style.display = ""; // ← limpiar inline para que CSS tome control
+              });
+              sec.classList.add("active"); // CSS: .section.active { display:block }
+              // Esperar a que Chart.js re-renderice al tamaño correcto
+              await new Promise((r) => setTimeout(r, 400));
+
+              const cap = await html2canvas(sec, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#eaeff7",
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 1280,
+                windowHeight: sec.scrollHeight + 60,
+                ignoreElements: (el) => {
+                  if (el.id && ["hdr", "tabs-nav", "ldr", "tc"].includes(el.id))
+                    return true;
+                  if (el.id === "pdf-wrap") return true;
+                  if (el.classList?.contains("btn-up")) return true;
+                  return false;
+                },
+                onclone: (doc) => {
+                  doc.querySelectorAll(".rn").forEach((el) => {
+                    el.style.cssText +=
+                      ";background:linear-gradient(135deg,#4f7ef7,#7c3aed)!important;color:#fff!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;width:22px!important;height:22px!important;border-radius:50%!important;font-size:.62rem!important;font-weight:700!important;flex-shrink:0!important;";
+                  });
+                  doc.querySelectorAll(".rn.tp").forEach((el) => {
+                    el.style.background =
+                      "linear-gradient(135deg,#f59e0b,#ef4444)";
+                  });
+                  doc.querySelectorAll(".pb-f").forEach((el) => {
+                    el.style.background =
+                      "linear-gradient(90deg,#4f7ef7,#7c3aed)";
+                  });
+                  doc.querySelectorAll("canvas").forEach((cv) => {
+                    if (cv.width < 1) cv.width = 1;
+                    if (cv.height < 1) cv.height = 1;
+                  });
+                  doc
+                    .querySelectorAll(".fi")
+                    .forEach((el) => el.classList.add("vis"));
+                  doc.querySelectorAll(".section").forEach((s) => {
+                    s.style.display = s.id === tabId ? "block" : "none";
+                  });
+                },
+              });
+
+              // ── FIX: buildSmartPages AQUÍ, mientras sec todavía es visible ──
+              const pages = buildSmartPages(sec, cap, cW, cH);
+
+              // Ocultar sección limpiamente (sin inline style → CSS controla)
+              sec.classList.remove("active");
+              // No tocar style.display → CSS lo mantiene oculto via .section { display:none }
+
+              return { cap, pages };
+            };
+
+            // Capturar todas las secciones en orden
+            const captures = [];
+            for (const tid of tabIds) {
+              const result = await captureAndPlan(tid);
+              if (result) captures.push({ tabId: tid, ...result });
             }
 
-            // Guardar PDF con nombre descriptivo
-            const tabSlug = tabActivo.id.replace("tab-", "");
-            pdf.save(
-              `Data-Pro-${tabSlug}-${new Date().toISOString().slice(0, 10)}.pdf`,
+            const totalPgs = captures.reduce(
+              (a, { pages }) => a + pages.length,
+              0,
             );
+            ldr(true, `Generando ${totalPgs} páginas...`);
 
-            toast("PDF generado correctamente", "ok");
+            let globalPg = 0;
+            for (const { tabId, cap, pages } of captures) {
+              const mmPerCapPx = cW / cap.width;
+              for (const { startMM, heightMM } of pages) {
+                globalPg++;
+                if (globalPg > 1) pdf.addPage();
+                drawFrame(globalPg, totalPgs, tabNames[tabId]);
+                const startPx = startMM / mmPerCapPx;
+                const heightPx = heightMM / mmPerCapPx;
+                const safeH = Math.max(1, Math.ceil(heightPx));
+                const sl = document.createElement("canvas");
+                sl.width = cap.width;
+                sl.height = safeH;
+                sl.getContext("2d").drawImage(
+                  cap,
+                  0,
+                  startPx,
+                  cap.width,
+                  safeH,
+                  0,
+                  0,
+                  cap.width,
+                  safeH,
+                );
+                pdf.addImage(
+                  sl.toDataURL("image/jpeg", 0.93),
+                  "JPEG",
+                  mX,
+                  mY + hH + 2,
+                  cW,
+                  heightMM,
+                );
+              }
+            }
+
+            const slug = cual === "all" ? "completo" : cual;
+            pdf.save(
+              `AVSA-${slug}-${new Date().toISOString().slice(0, 10)}.pdf`,
+            );
+            toast(
+              `PDF "${cual === "all" ? "Completo" : tabNames["tab-" + cual]}" generado ✅`,
+              "ok",
+            );
           } catch (err) {
-            console.error("[PDF Export]", err);
+            console.error("[AVSA App]", err);
             toast("Error al generar PDF: " + err.message, "err");
           } finally {
-            btnPDF.textContent = "🖨 Imprimir / PDF";
+            CanvasRenderingContext2D.prototype.createPattern = _origCP;
+            btnPDF.textContent = "🖨 PDF ▾";
             btnPDF.disabled = false;
             ldr(false);
+            // ── RESTAURAR pantalla: limpiar inline styles + volver al tab original ──
+            // FIX PANTALLA EN BLANCO: limpiar todos los display inline
+            // antes de llamar showTab, para que el CSS tome el control
+            document.querySelectorAll(".section").forEach((s) => {
+              s.classList.remove("active");
+              s.style.display = ""; // ← crucial: sin esto CSS no puede mostrar la sección
+            });
+            showTab(tabActivoOriginal.replace("tab-", ""));
           }
-        };
-
-        /* ══════════════════════════════════════════
+        }; /* ══════════════════════════════════════════
    FLUJO PRINCIPAL: handleFile
 ══════════════════════════════════════════ */
         const handleFile = async (file) => {
@@ -4275,7 +4866,7 @@
             // Render tab 1
             renderResumen();
 
-            document.getElementById("btn-pdf").classList.add("show");
+            document.getElementById("pdf-wrap").style.display = "block";
             setStatus(
               true,
               `${S.meses.length} meses · ${S.materiales.length} materiales`,
@@ -4285,7 +4876,7 @@
               "ok",
             );
           } catch (err) {
-            console.error("[DataPro]", err);
+            console.error("[AVSA App]", err);
             toast(`Error: ${err.message}`, "err");
             setStatus(false, "Error al cargar");
           } finally {
